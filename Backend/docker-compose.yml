@@ -1,0 +1,33 @@
+services:
+  backend:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: routesense_backend
+    environment:
+      - DATABASE_URL=postgresql://postgres.nykwjnqalbxpmfggamxb:Vp7E5u6IbTNhcIX6@aws-0-us-west-2.pooler.supabase.com:5432/postgres
+    expose:
+      - "8000"
+    volumes:
+      - ./app:/app
+    networks:
+      - routesense_network
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: routesense_nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - routesense_network
+
+networks:
+  routesense_network:
+    driver: bridge
