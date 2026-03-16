@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: routesense-api
+    runtime: docker
+    dockerContext: ./app
+    dockerfilePath: Dockerfile
+    plan: free
+    region: ohio
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PORT
+        value: 8000
