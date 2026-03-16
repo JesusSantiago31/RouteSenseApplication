@@ -1,8 +1,9 @@
 services:
+  # 1. Servicio de Administración y Auth
   - type: web
-    name: routesense-api
+    name: routesense-administrador
     runtime: docker
-    dockerContext: ./Backend/app
+    dockerContext: ./Backend/Administrador
     dockerfilePath: Dockerfile
     plan: free
     region: ohio
@@ -11,5 +12,37 @@ services:
         sync: false
       - key: SECRET_KEY
         generateValue: true
-      - key: PORT
-        value: 8000
+
+  # 2. Servicio de Autobuses
+  - type: web
+    name: routesense-autobus
+    runtime: docker
+    dockerContext: ./Backend/Autobus
+    dockerfilePath: Dockerfile
+    plan: free
+    region: ohio
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        fromService:
+          type: web
+          name: routesense-administrador
+          envVar: SECRET_KEY
+
+  # 3. Servicio de Conductores
+  - type: web
+    name: routesense-conductor
+    runtime: docker
+    dockerContext: ./Backend/Conductor
+    dockerfilePath: Dockerfile
+    plan: free
+    region: ohio
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        fromService:
+          type: web
+          name: routesense-administrador
+          envVar: SECRET_KEY
