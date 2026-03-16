@@ -4,6 +4,8 @@ from database import SessionLocal
 from schemas import AdminCreate, AdminResponse, AdminUpdateRole
 from services.admin_service import create_admin
 from models import Usuario, Administrador
+from utils.dependencies import get_current_admin
+from main import limiter
 
 router = APIRouter(prefix="/admin", tags=["Administradores"])
 
@@ -14,10 +16,11 @@ def get_db():
     finally:
         db.close()
 
-# Crear administrador
+# ✅ Crear administrador
 @router.post("/", response_model=AdminResponse)
-def crear_admin(data: AdminCreate, db: Session = Depends(get_db)):
-    usuario, admin = create_admin(db, data)
+@limiter.limit("5/minute")
+def crear_admin(request: Request, data: AdminCreate, db: Session = Depends(get_db), admin_current = Depends(get_current_admin)):
+    usuario, admin_obj = create_admin(db, data)
 
     return {
         "user_id": usuario.user_id,

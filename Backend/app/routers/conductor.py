@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from schemas import ConductorCreate, ConductorResponse
 from services import conductor_service
+from utils.dependencies import get_current_admin
+from main import limiter
 
 router = APIRouter(prefix="/conductores", tags=["Conductores"])
 
@@ -14,7 +16,8 @@ def get_db():
         db.close()
 
 @router.post("/", response_model=ConductorResponse)
-def crear_conductor(data: ConductorCreate, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")
+def crear_conductor(request: Request, data: ConductorCreate, db: Session = Depends(get_db), admin = Depends(get_current_admin)):
     return conductor_service.create_conductor(db, data)
 
 @router.get("/", response_model=list[ConductorResponse])
