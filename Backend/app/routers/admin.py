@@ -14,7 +14,7 @@ def get_db():
     finally:
         db.close()
 
-# ✅ Crear administrador
+# Crear administrador
 @router.post("/", response_model=AdminResponse)
 def crear_admin(data: AdminCreate, db: Session = Depends(get_db)):
     usuario, admin = create_admin(db, data)
@@ -27,7 +27,7 @@ def crear_admin(data: AdminCreate, db: Session = Depends(get_db)):
         "rol": admin.rol,
     }
 
-# ✅ Listar administradores
+# Listar administradores
 @router.get("/")
 def listar_admins(db: Session = Depends(get_db)):
     admins = db.query(Usuario, Administrador)\
@@ -45,7 +45,7 @@ def listar_admins(db: Session = Depends(get_db)):
         for u, a in admins
     ]
 
-# ✅ Obtener administrador
+# Obtener administrador
 @router.get("/{admin_id}")
 def obtener_admin(admin_id: str, db: Session = Depends(get_db)):
     admin = db.query(Usuario, Administrador)\
@@ -65,7 +65,7 @@ def obtener_admin(admin_id: str, db: Session = Depends(get_db)):
         "rol": a.rol,
     }
 
-# ✅ Actualizar rol
+# Actualizar rol
 @router.patch("/{admin_id}/rol")
 def actualizar_rol(admin_id: str, data: AdminUpdateRole, db: Session = Depends(get_db)):
     admin = db.query(Administrador).filter_by(user_id=admin_id).first()
@@ -76,7 +76,7 @@ def actualizar_rol(admin_id: str, data: AdminUpdateRole, db: Session = Depends(g
     db.commit()
     return {"mensaje": "Rol actualizado"}
 
-# ✅ Eliminar administrador
+# Eliminar administrador
 @router.delete("/{admin_id}")
 def eliminar_admin(admin_id: str, db: Session = Depends(get_db)):
     admin = db.query(Administrador).filter_by(user_id=admin_id).first()
