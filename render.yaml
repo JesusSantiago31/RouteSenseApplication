@@ -1,5 +1,13 @@
+envVarGroups:
+  - name: routesense-shared
+    envVars:
+      - key: DATABASE_URL
+        sync: false # Debes pegarla manualmente en el dashboard de Render una vez
+      - key: SECRET_KEY
+        generateValue: true # Render generará una automáticamente
+
 services:
-  # 1. Servicio de Administración y Auth
+  # 1. Servicio de Administración
   - type: web
     name: routesense-administrador
     runtime: docker
@@ -8,10 +16,7 @@ services:
     plan: free
     region: ohio
     envVars:
-      - key: DATABASE_URL
-        sync: false
-      - key: SECRET_KEY
-        generateValue: true
+      - fromGroup: routesense-shared
 
   # 2. Servicio de Autobuses
   - type: web
@@ -22,13 +27,7 @@ services:
     plan: free
     region: ohio
     envVars:
-      - key: DATABASE_URL
-        sync: false
-      - key: SECRET_KEY
-        fromService:
-          type: web
-          name: routesense-administrador
-          envVar: SECRET_KEY
+      - fromGroup: routesense-shared
 
   # 3. Servicio de Conductores
   - type: web
@@ -39,10 +38,4 @@ services:
     plan: free
     region: ohio
     envVars:
-      - key: DATABASE_URL
-        sync: false
-      - key: SECRET_KEY
-        fromService:
-          type: web
-          name: routesense-administrador
-          envVar: SECRET_KEY
+      - fromGroup: routesense-shared
