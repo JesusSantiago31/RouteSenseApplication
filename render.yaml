@@ -39,3 +39,25 @@ services:
     region: ohio
     envVars:
       - fromGroup: routesense-shared
+
+  # 4. Servicio de Paradas
+  - type: web
+    name: routesense-paradas
+    runtime: docker
+    dockerContext: ./Backend/Paradas
+    dockerfilePath: Backend/Paradas/Dockerfile
+    plan: free
+    region: ohio
+    envVars:
+      - fromGroup: routesense-shared
+
+  # 5. Servicio de Rutas
+  - type: web
+    name: routesense-rutas
+    runtime: docker
+    dockerContext: ./Backend/Rutas
+    dockerfilePath: Backend/Rutas/Dockerfile
+    plan: free
+    region: ohio
+    envVars:
+      - fromGroup: routesense-shared

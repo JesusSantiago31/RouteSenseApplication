@@ -1,14 +1,13 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from utils.limiter import limiter
-from routers import create_bus, list_buses, assign_route
+from routers import create_route, list_routes, add_stop_to_route
 from database import Base, engine
 import models
 
-app = FastAPI(title="RouteSense Autobus API")
+app = FastAPI(title="RouteSense Rutas API")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
@@ -27,11 +26,11 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return {
-        "message": "Bienvenido a RouteSense Autobus API",
+        "message": "Bienvenido a RouteSense Rutas API",
         "docs": "/docs",
         "status": "online"
     }
 
-app.include_router(create_bus.router)
-app.include_router(list_buses.router)
-app.include_router(assign_route.router)
+app.include_router(create_route.router)
+app.include_router(list_routes.router)
+app.include_router(add_stop_to_route.router)
