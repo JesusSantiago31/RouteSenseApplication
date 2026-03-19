@@ -2,9 +2,9 @@ envVarGroups:
   - name: routesense-shared
     envVars:
       - key: DATABASE_URL
-        sync: false # Debes pegarla manualmente en el dashboard de Render una vez
+        sync: false
       - key: SECRET_KEY
-        generateValue: true # Render generará una automáticamente
+        generateValue: true
 
 services:
   # 1. Servicio de Administración
@@ -12,7 +12,7 @@ services:
     name: routesense-administrador
     runtime: docker
     dockerContext: ./Backend/Administrador
-    dockerfilePath: Dockerfile
+    dockerfilePath: Backend/Administrador/Dockerfile
     plan: free
     region: ohio
     envVars:
@@ -23,7 +23,7 @@ services:
     name: routesense-autobus
     runtime: docker
     dockerContext: ./Backend/Autobus
-    dockerfilePath: Dockerfile
+    dockerfilePath: Backend/Autobus/Dockerfile
     plan: free
     region: ohio
     envVars:
@@ -34,7 +34,7 @@ services:
     name: routesense-conductor
     runtime: docker
     dockerContext: ./Backend/Conductor
-    dockerfilePath: Dockerfile
+    dockerfilePath: Backend/Conductor/Dockerfile
     plan: free
     region: ohio
     envVars:
