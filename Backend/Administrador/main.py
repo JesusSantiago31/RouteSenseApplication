@@ -5,6 +5,8 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from utils.limiter import limiter
 from routers import create_admin, list_admins, get_admin, update_role, delete_admin, login
+from database import Base, engine
+import models
 
 app = FastAPI(title="RouteSense Administrador API")
 app.state.limiter = limiter

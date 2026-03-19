@@ -5,6 +5,8 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from utils.limiter import limiter
 from routers import create_bus, list_buses
+from database import Base, engine
+import models
 
 app = FastAPI(title="RouteSense Autobus API")
 app.state.limiter = limiter

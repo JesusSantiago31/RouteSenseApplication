@@ -5,6 +5,8 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from utils.limiter import limiter
 from routers import create_conductor, list_conductors
+from database import Base, engine
+import models
 
 app = FastAPI(title="RouteSense Conductor API")
 app.state.limiter = limiter
