@@ -61,3 +61,14 @@ services:
     region: ohio
     envVars:
       - fromGroup: routesense-shared
+
+  # 6. Servicio de Clientes
+  - type: web
+    name: routesense-clientes
+    runtime: docker
+    dockerContext: ./Backend/Clientes
+    dockerfilePath: Backend/Clientes/Dockerfile
+    plan: free
+    region: ohio
+    envVars:
+      - fromGroup: routesense-shared
