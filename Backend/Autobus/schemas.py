@@ -53,7 +53,3 @@ class BusResponse(BaseModel):
 
     class Config:
         from_attributes = True
-
-class BusRouteAssignment(BaseModel):
-    bus_id: UUID
-    ruta_id: UUID

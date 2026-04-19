@@ -42,10 +42,3 @@ class Autobus(Base):
     capacidad = Column(Integer, nullable=False)
     empresa = Column(String(100), nullable=False)
     estado = Column(Boolean, nullable=False, default=True)
-
-class RutaAutobus(Base):
-    __tablename__ = "rutas_autobuses"
-    __table_args__ = {"schema": "transporte"}
-
-    bus_id = Column(UUID(as_uuid=True), ForeignKey("transporte.autobuses.bus_id", ondelete="CASCADE"), primary_key=True)
-    ruta_id = Column(UUID(as_uuid=True), primary_key=True) # ruta_id viene del otro microservicio, así que no ponemos FK explícita aquí o la ponemos si sabemos que la tabla existe
