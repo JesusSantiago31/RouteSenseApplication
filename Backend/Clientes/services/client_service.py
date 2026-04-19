@@ -1,10 +1,10 @@
 from sqlalchemy.orm import Session
 from models import Usuario
 from schemas import ClientRegister
-from utils.security import get_password_hash, verify_password
+from utils.security import hash_password, verify_password
 
 def create_client(db: Session, data: ClientRegister):
-    hashed_password = get_password_hash(data.password)
+    hashed_password = hash_password(data.password)
     new_user = Usuario(
         nombre=data.nombre,
         apellido=data.apellido,
