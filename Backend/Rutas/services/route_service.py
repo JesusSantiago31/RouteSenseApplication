@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
-from models import Ruta, RutaParada
+from models import Ruta, RutaParada, Parada, Lugar
+from services.directions import get_directions
 from schemas import RutaCreate, RutaParadaCreate
 
 def create_route(db: Session, data: RutaCreate):
@@ -28,4 +29,24 @@ def get_route_with_stops(db: Session, ruta_id: str):
     if not ruta:
         return None
     paradas = db.query(RutaParada).filter(RutaParada.ruta_id == ruta_id).order_by(RutaParada.orden).all()
-    return {"ruta": ruta, "paradas": paradas}
+    
+    # Obtener el Polyline usando Google Maps API
+    polyline = None
+    origen = db.query(Lugar).filter(Lugar.lugar_id == ruta.origen_id).first()
+    destino = db.query(Lugar).filter(Lugar.lugar_id == ruta.destino_id).first()
+    
+    if origen and destino and origen.latitud and destino.latitud:
+        waypoints = []
+        for p in paradas:
+            parada_info = db.query(Parada).filter(Parada.parada_id == p.parada_id).first()
+            if parada_info:
+                lugar_info = db.query(Lugar).filter(Lugar.lugar_id == parada_info.lugar_id).first()
+                if lugar_info and lugar_info.latitud and lugar_info.longitud:
+                    waypoints.append((lugar_info.latitud, lugar_info.longitud))
+                    
+        dir_data = get_directions(origen.latitud, origen.longitud, destino.latitud, destino.longitud, waypoints)
+        if dir_data:
+            polyline = dir_data["polyline"]
+            # Podríamos actualizar la distancia total de la ruta aquí si es necesario
+    
+    return {"ruta": ruta, "paradas": paradas, "google_polyline": polyline}

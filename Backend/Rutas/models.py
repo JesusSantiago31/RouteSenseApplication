@@ -7,12 +7,15 @@ class Lugar(Base):
     __tablename__ = "lugares"
     lugar_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     nombre_lugar = Column(String(70), nullable=False)
+    latitud = Column(Numeric(9,6), nullable=True)
+    longitud = Column(Numeric(9,6), nullable=True)
 
 class Parada(Base):
     __tablename__ = "paradas"
     __table_args__ = {"schema": "transporte"}
     parada_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     nombre = Column(String(70), nullable=False)
+    lugar_id = Column(UUID(as_uuid=True), ForeignKey("lugares.lugar_id"), nullable=False)
 
 class Ruta(Base):
     __tablename__ = "rutas"
