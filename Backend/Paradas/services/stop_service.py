@@ -1,14 +1,24 @@
 from sqlalchemy.orm import Session
 from models import Lugar, Parada
 from schemas import ParadaCreate
+from services.geocoding import get_coordinates
 
 def create_stop(db: Session, data: ParadaCreate):
-    # Primero buscamos si el lugar ya existe por nombre o coordenadas exactas (opcional)
-    # Por ahora creamos uno nuevo por cada parada (según el esquema SQL)
+    # Calcular coordenadas con Geocoding de Google Maps si vienen vacías
+    latitud_final = data.latitud
+    longitud_final = data.longitud
+
+    if latitud_final is None or longitud_final is None:
+        direccion_completa = f"{data.nombre_lugar}, {data.municipio}, {data.estado}"
+        lat, lng = get_coordinates(direccion_completa)
+        if lat and lng:
+            latitud_final = lat
+            longitud_final = lng
+
     lugar = Lugar(
         nombre_lugar=data.nombre_lugar,
-        latitud=data.latitud,
-        longitud=data.longitud,
+        latitud=latitud_final,
+        longitud=longitud_final,
         estado=data.estado,
         municipio=data.municipio,
         localidad=data.localidad

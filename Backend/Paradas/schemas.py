@@ -4,8 +4,8 @@ from decimal import Decimal
 
 class LugarBase(BaseModel):
     nombre_lugar: str
-    latitud: Decimal
-    longitud: Decimal
+    latitud: Decimal | None = None
+    longitud: Decimal | None = None
     estado: str
     municipio: str
     localidad: str
@@ -23,8 +23,8 @@ class ParadaBase(BaseModel):
 
 class ParadaCreate(ParadaBase):
     nombre_lugar: str
-    latitud: Decimal
-    longitud: Decimal
+    latitud: Decimal | None = None
+    longitud: Decimal | None = None
     estado: str
     municipio: str
     localidad: str
