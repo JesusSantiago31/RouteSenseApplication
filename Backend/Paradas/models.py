@@ -1,4 +1,5 @@
 from sqlalchemy import Column, String, ForeignKey, Boolean, Numeric
+from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from database import Base
@@ -22,6 +23,8 @@ class Parada(Base):
     lugar_id = Column(UUID(as_uuid=True), ForeignKey("lugares.lugar_id"), nullable=False)
     nombre = Column(String(70), nullable=False)
     activa = Column(Boolean, default=True)
+
+    lugar = relationship("Lugar")
 
 class Administrador(Base):
     __tablename__ = "administradores"
