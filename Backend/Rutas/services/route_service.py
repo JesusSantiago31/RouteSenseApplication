@@ -37,16 +37,33 @@ def get_route_with_stops(db: Session, ruta_id: str):
     
     if origen and destino and origen.latitud and destino.latitud:
         waypoints = []
+        paradas_enriquecidas = []
+        
         for p in paradas:
+            lat, lng, nombre_parada = None, None, "Desconocida"
             parada_info = db.query(Parada).filter(Parada.parada_id == p.parada_id).first()
             if parada_info:
+                nombre_parada = parada_info.nombre
                 lugar_info = db.query(Lugar).filter(Lugar.lugar_id == parada_info.lugar_id).first()
                 if lugar_info and lugar_info.latitud and lugar_info.longitud:
-                    waypoints.append((lugar_info.latitud, lugar_info.longitud))
+                    lat, lng = lugar_info.latitud, lugar_info.longitud
+                    waypoints.append((lat, lng))
+                    
+            paradas_enriquecidas.append({
+                "parada_id": p.parada_id,
+                "orden": p.orden,
+                "nombre": nombre_parada,
+                "latitud": lat,
+                "longitud": lng
+            })
                     
         dir_data = get_directions(origen.latitud, origen.longitud, destino.latitud, destino.longitud, waypoints)
         if dir_data:
             polyline = dir_data["polyline"]
             # Podríamos actualizar la distancia total de la ruta aquí si es necesario
     
-    return {"ruta": ruta, "paradas": paradas, "google_polyline": polyline}
+    return {
+        "ruta": ruta, 
+        "paradas": paradas_enriquecidas if 'paradas_enriquecidas' in locals() else paradas, 
+        "google_polyline": polyline
+    }
