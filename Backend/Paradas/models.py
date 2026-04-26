@@ -22,3 +22,8 @@ class Parada(Base):
     lugar_id = Column(UUID(as_uuid=True), ForeignKey("lugares.lugar_id"), nullable=False)
     nombre = Column(String(70), nullable=False)
     activa = Column(Boolean, default=True)
+
+class Administrador(Base):
+    __tablename__ = "administradores"
+    user_id = Column(UUID(as_uuid=True), primary_key=True)
+    rol = Column(String(20), nullable=False)

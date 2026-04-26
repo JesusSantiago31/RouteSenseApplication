@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, Polyline, Marker } from '@react-google-maps/api';
-import { Map as MapIcon, ChevronRight, Plus, X, Navigation, LocateFixed, Search } from 'lucide-react';
+import { Map as MapIcon, ChevronRight, Plus, X, Navigation, LocateFixed, Search, Globe } from 'lucide-react';
 import { routeService } from '../services/routeService';
 import { stopService } from '../services/stopService';
 
@@ -17,7 +17,7 @@ export default function MapDashboard() {
   
   const [clickedPos, setClickedPos] = useState(null);
   const [newStop, setNewStop] = useState({
-    nombre: '', nombre_lugar: '', estado: '', municipio: '', localidad: 'Urbana', activa: true
+    nombre: '', nombre_lugar: '', estado: '', municipio: '', localidad: 'Urbana', activa: true, latitud: '', longitud: ''
   });
 
   const { isLoaded } = useJsApiLoader({
@@ -39,6 +39,7 @@ export default function MapDashboard() {
       const lat = e.latLng.lat();
       const lng = e.latLng.lng();
       setClickedPos({ lat, lng });
+      setNewStop(prev => ({ ...prev, latitud: lat.toFixed(6), longitud: lng.toFixed(6) }));
       reverseGeocode(lat, lng);
     }
   };
@@ -74,18 +75,12 @@ export default function MapDashboard() {
 
   const handleCreateStop = async (e) => {
     e.preventDefault();
-    const payload = { 
-        ...newStop, 
-        latitud: clickedPos ? clickedPos.lat : null,
-        longitud: clickedPos ? clickedPos.lng : null
-    };
-
     try {
-      await stopService.createStop(payload);
-      alert("Parada guardada con éxito.");
+      await stopService.createStop(newStop);
+      alert("¡Parada creada con éxito!");
       setShowStopForm(false);
       setClickedPos(null);
-      setNewStop({ nombre: '', nombre_lugar: '', estado: '', municipio: '', localidad: 'Urbana', activa: true });
+      setNewStop({ nombre: '', nombre_lugar: '', estado: '', municipio: '', localidad: 'Urbana', activa: true, latitud: '', longitud: '' });
       fetchRutas();
     } catch (err) {
       alert(err.message);
@@ -96,7 +91,7 @@ export default function MapDashboard() {
     <div className="fade-in" style={{ display: 'flex', gap: '20px', height: 'calc(100vh - 80px)', padding: '20px' }}>
       
       {/* Panel Izquierdo */}
-      <div className="glass-card" style={{ width: '380px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div className="glass-card" style={{ width: '400px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <div style={{ padding: '20px', borderBottom: '1px solid var(--glass-border)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.25rem' }}>
@@ -112,33 +107,45 @@ export default function MapDashboard() {
           {showStopForm ? (
             <div className="fade-in">
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                    <h3 style={{ fontSize: '1rem' }}>Identificar Parada</h3>
+                    <h3 style={{ fontSize: '1rem' }}>Configurar Parada</h3>
                     <X size={18} cursor="pointer" onClick={() => {setShowStopForm(false); setClickedPos(null);}} />
                 </div>
                 
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', background: 'rgba(59, 130, 246, 0.1)', padding: '10px', borderRadius: '8px', marginBottom: '15px' }}>
-                    {isGeocoding ? "⌛ Obteniendo dirección..." : clickedPos ? "📍 Dirección obtenida del mapa" : "💡 Haz clic en el mapa para auto-rellenar la dirección."}
-                </p>
-
                 <form onSubmit={handleCreateStop} className="auth-form">
                     <div className="input-group">
-                        <label className="input-label">Nombre para la App</label>
+                        <label className="input-label">Identificador (App)</label>
                         <input className="input-field" value={newStop.nombre} onChange={e => setNewStop({...newStop, nombre: e.target.value})} required placeholder="Ej: Estación Arboledas" />
                     </div>
-                    <div className="input-group">
-                        <label className="input-label">Calle / Referencia</label>
-                        <input className="input-field" value={newStop.nombre_lugar} onChange={e => setNewStop({...newStop, nombre_lugar: e.target.value})} required placeholder="Buscando..." />
+
+                    <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                        <div className="input-group" style={{ flex: 1 }}>
+                            <label className="input-label">Latitud</label>
+                            <input className="input-field" style={{ fontSize: '0.85rem' }} value={newStop.latitud} onChange={e => setNewStop({...newStop, latitud: e.target.value})} placeholder="0.000000" />
+                        </div>
+                        <div className="input-group" style={{ flex: 1 }}>
+                            <label className="input-label">Longitud</label>
+                            <input className="input-field" style={{ fontSize: '0.85rem' }} value={newStop.longitud} onChange={e => setNewStop({...newStop, longitud: e.target.value})} placeholder="0.000000" />
+                        </div>
                     </div>
+
                     <div className="input-group">
-                        <label className="input-label">Municipio</label>
-                        <input className="input-field" value={newStop.municipio} onChange={e => setNewStop({...newStop, municipio: e.target.value})} required placeholder="Ciudad" />
+                        <label className="input-label">Dirección / Referencia</label>
+                        <input className="input-field" value={newStop.nombre_lugar} onChange={e => setNewStop({...newStop, nombre_lugar: e.target.value})} required placeholder="Haz clic en el mapa..." />
                     </div>
-                    <div className="input-group">
-                        <label className="input-label">Estado</label>
-                        <input className="input-field" value={newStop.estado} onChange={e => setNewStop({...newStop, estado: e.target.value})} required placeholder="Estado" />
+                    
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <div className="input-group" style={{ flex: 1 }}>
+                            <label className="input-label">Ciudad</label>
+                            <input className="input-field" value={newStop.municipio} onChange={e => setNewStop({...newStop, municipio: e.target.value})} required />
+                        </div>
+                        <div className="input-group" style={{ flex: 1 }}>
+                            <label className="input-label">Estado</label>
+                            <input className="input-field" value={newStop.estado} onChange={e => setNewStop({...newStop, estado: e.target.value})} required />
+                        </div>
                     </div>
-                    <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '10px' }} disabled={isGeocoding}>
-                        Guardar Parada
+
+                    <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '5px' }} disabled={isGeocoding}>
+                        {isGeocoding ? "Procesando..." : "Registrar Parada"}
                     </button>
                 </form>
             </div>
