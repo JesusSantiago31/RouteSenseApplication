@@ -18,4 +18,7 @@ def crear_bus(data: BusCreate, db: Session = Depends(get_db)):
     try:
         return bus_service.create_bus(db, data)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        import traceback
+        error_trace = traceback.format_exc()
+        print("ERROR CREATING BUS:", error_trace)
+        raise HTTPException(status_code=400, detail=str(e) + " | " + error_trace)

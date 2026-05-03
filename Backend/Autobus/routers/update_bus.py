@@ -21,4 +21,7 @@ def actualizar_bus(bus_id: str, data: BusCreate, db: Session = Depends(get_db)):
             raise HTTPException(status_code=404, detail="Autobús no encontrado")
         return bus
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        import traceback
+        error_trace = traceback.format_exc()
+        print("ERROR UPDATING BUS:", error_trace)
+        raise HTTPException(status_code=400, detail=str(e) + " | " + error_trace)
