@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers import company_router
 from database import Base, engine
 import models
+import os
 
 app = FastAPI(title="RouteSense Empresas API")
 

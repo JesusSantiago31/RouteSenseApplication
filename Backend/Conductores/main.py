@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers import conductor_router
 from database import Base, engine
 import models
+import os
 
 app = FastAPI(title="RouteSense Conductores API")
 
