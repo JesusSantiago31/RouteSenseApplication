@@ -30,6 +30,7 @@ class Ruta(Base):
     distancia_km = Column(Numeric(8,2), nullable=False)
     activa = Column(Boolean, nullable=False, default=True)
     numero_paradas = Column(Integer, nullable=False, default=0)
+    color = Column(String(7), default="#3498db")
 
 class RutaParada(Base):
     __tablename__ = "rutas_paradas"

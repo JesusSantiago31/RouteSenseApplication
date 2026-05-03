@@ -20,6 +20,7 @@ class LugarResponse(LugarBase):
 class ParadaBase(BaseModel):
     nombre: str
     activa: bool = True
+    color: str = "#3498db"
 
 class ParadaCreate(ParadaBase):
     nombre_lugar: str

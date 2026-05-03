@@ -29,7 +29,8 @@ def create_stop(db: Session, data: ParadaCreate):
     parada = Parada(
         lugar_id=lugar.lugar_id,
         nombre=data.nombre,
-        activa=data.activa
+        activa=data.activa,
+        color=data.color
     )
     db.add(parada)
     db.commit()

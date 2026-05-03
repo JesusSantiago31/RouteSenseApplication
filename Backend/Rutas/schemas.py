@@ -8,6 +8,7 @@ class RutaBase(BaseModel):
     distancia_km: Decimal
     activa: bool = True
     numero_paradas: int = 0
+    color: str = "#3498db"
 
 class RutaCreate(RutaBase):
     pass

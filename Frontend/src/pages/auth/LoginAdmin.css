@@ -1,0 +1,128 @@
+.login-container {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f4f7fa 0%, #e3f2fd 100%);
+  font-family: 'Inter', sans-serif;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  padding: 50px;
+  border-radius: 32px;
+  box-shadow: 0 20px 60px rgba(0, 92, 200, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  text-align: center;
+}
+
+.login-logo {
+  display: inline-flex;
+  background: #005cc8;
+  color: white;
+  padding: 14px;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 20px rgba(0, 92, 200, 0.2);
+}
+
+.login-header h2 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+  letter-spacing: -1px;
+}
+
+.login-header p {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  margin-bottom: 40px;
+}
+
+.input-group {
+  position: relative;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.input-group label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #005cc8;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+.input-wrapper svg {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #cbd5e0;
+}
+
+.input-wrapper input {
+  width: 100%;
+  padding: 15px 15px 15px 48px;
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 14px;
+  font-size: 1rem;
+  color: #1a202c;
+  transition: all 0.3s ease;
+}
+
+.input-wrapper input:focus {
+  outline: none;
+  border-color: #005cc8;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(0, 92, 200, 0.05);
+}
+
+.login-button {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(90deg, #005cc8, #3498db);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  margin-top: 10px;
+  box-shadow: 0 12px 24px rgba(0, 92, 200, 0.2);
+  transition: all 0.3s ease;
+}
+
+.login-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 15px 30px rgba(0, 92, 200, 0.3);
+}
+
+.login-button:disabled {
+  background: #cbd5e0;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.error-message {
+  background: #fff5f5;
+  color: #c53030;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  border: 1px solid #feb2b2;
+}
