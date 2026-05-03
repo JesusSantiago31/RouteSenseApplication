@@ -34,3 +34,4 @@ def read_root():
 app.include_router(create_route.router)
 app.include_router(list_routes.router)
 app.include_router(add_stop_to_route.router)
+app.include_router(manage_routes.router)

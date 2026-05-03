@@ -1,55 +1,31 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict
 from uuid import UUID
+from datetime import datetime
 
-from typing import Literal
-
-class AdminCreate(BaseModel):
+class EmpresaBase(BaseModel):
     nombre: str
-    apellido: str
-    email: EmailStr
-    password: str
-    rol: Literal["admin", "superadmin"] = "admin"
+    razon_social: str
+    telefono: str
+    color: str = "#1e293b"
+    activa: bool = True
 
-class AdminResponse(BaseModel):
-    user_id: UUID
-    nombre: str
-    apellido: str
-    email: str
-    rol: Literal["admin", "superadmin"]
+class EmpresaCreate(EmpresaBase):
+    pass
 
-class AdminUpdateRole(BaseModel):
-    rol: str
+class EmpresaResponse(EmpresaBase):
+    empresa_id: UUID
+    model_config = ConfigDict(from_attributes=True)
 
-# Conductores
-class ConductorCreate(BaseModel):
-    nombre: str
-    licencia: str
-    activo: bool = True
-
-class ConductorResponse(BaseModel):
-    conductor_id: UUID
-    nombre: str
-    licencia: str
-    activo: bool
-
-    class Config:
-        from_attributes = True
-
-# Autobuses
-class BusCreate(BaseModel):
+class AutobusBase(BaseModel):
     placa: str
     capacidad: int
-    empresa: str
+    empresa_id: UUID | None = None
     conductor_id: UUID | None = None
     estado: bool = True
 
-class BusResponse(BaseModel):
-    bus_id: UUID
-    placa: str
-    capacidad: int
-    empresa: str
-    conductor_id: UUID | None
-    estado: bool
+class AutobusCreate(AutobusBase):
+    pass
 
-    class Config:
-        from_attributes = True
+class AutobusResponse(AutobusBase):
+    bus_id: UUID
+    model_config = ConfigDict(from_attributes=True)

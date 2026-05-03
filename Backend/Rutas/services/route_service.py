@@ -67,3 +67,20 @@ def get_route_with_stops(db: Session, ruta_id: str):
         "paradas": paradas_enriquecidas if 'paradas_enriquecidas' in locals() else paradas, 
         "google_polyline": polyline
     }
+
+def update_route(db: Session, ruta_id: str, data: RutaCreate):
+    ruta = db.query(Ruta).filter(Ruta.ruta_id == ruta_id).first()
+    if not ruta:
+        return None
+    for key, value in data.model_dump().items():
+        setattr(ruta, key, value)
+    db.commit()
+    db.refresh(ruta)
+    return ruta
+
+def delete_route(db: Session, ruta_id: str):
+    ruta = db.query(Ruta).filter(Ruta.ruta_id == ruta_id).first()
+    if ruta:
+        db.delete(ruta)
+        db.commit()
+    return ruta

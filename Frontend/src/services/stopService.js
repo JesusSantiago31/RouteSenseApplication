@@ -31,5 +31,13 @@ export const stopService = {
     } catch (error) {
       return [];
     }
+  },
+  deleteStop: async (stopId) => {
+    try {
+      const response = await apiParadas.delete(`/stops/${stopId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.detail || "Error al eliminar la parada");
+    }
   }
 };

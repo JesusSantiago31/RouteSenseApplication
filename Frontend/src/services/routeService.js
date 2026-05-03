@@ -26,5 +26,20 @@ export const routeService = {
        console.error(error);
        return null;
     }
+  },
+
+  createRoute: async (data) => {
+    const response = await apiRutas.post('/routes/', data);
+    return response.data;
+  },
+
+  updateRoute: async (rutaId, data) => {
+    const response = await apiRutas.put(`/routes/${rutaId}`, data);
+    return response.data;
+  },
+
+  deleteRoute: async (rutaId) => {
+    const response = await apiRutas.delete(`/routes/${rutaId}`);
+    return response.data;
   }
 };

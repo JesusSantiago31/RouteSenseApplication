@@ -4,7 +4,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from utils.limiter import limiter
-from routers import create_bus, list_buses
+from routers import create_bus, list_buses, company_router
 from database import Base, engine
 import models
 
