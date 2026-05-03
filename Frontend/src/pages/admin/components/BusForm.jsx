@@ -5,7 +5,7 @@ export default function BusForm({ show, onClose, onSubmit, onDelete, busData, co
   const [formData, setFormData] = useState({
     placa: '',
     capacidad: 40,
-    empresa_id: '',
+    empresa: '',
     conductor_id: '',
     estado: true
   });
@@ -15,18 +15,20 @@ export default function BusForm({ show, onClose, onSubmit, onDelete, busData, co
       setFormData({
         placa: busData.placa || '',
         capacidad: busData.capacidad || 40,
-        empresa_id: busData.empresa_id || '',
+        empresa: busData.empresa || '',
         conductor_id: busData.conductor_id || '',
         estado: busData.estado !== undefined ? busData.estado : true
       });
     } else {
-      setFormData({ placa: '', capacidad: 40, empresa_id: '', conductor_id: '', estado: true });
+      setFormData({ placa: '', capacidad: 40, empresa: '', conductor_id: '', estado: true });
     }
   }, [busData, show]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    const payload = { ...formData };
+    if (!payload.conductor_id) payload.conductor_id = null;
+    onSubmit(payload);
   };
 
   return (
@@ -95,13 +97,13 @@ export default function BusForm({ show, onClose, onSubmit, onDelete, busData, co
                <Building2 size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors z-10" />
                <select
                 className="w-full pl-12 pr-4 py-4 bg-slate-50/50 border border-slate-100 rounded-[20px] font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:bg-white transition-all appearance-none shadow-sm cursor-pointer"
-                value={formData.empresa_id || ''}
-                onChange={e => setFormData({...formData, empresa_id: e.target.value})}
+                value={formData.empresa || ''}
+                onChange={e => setFormData({...formData, empresa: e.target.value})}
                 required
                >
                   <option value="">Seleccionar Empresa</option>
                   {Array.isArray(companies) && companies.map(c => (
-                    <option key={c.empresa_id} value={c.empresa_id}>{c.nombre}</option>
+                    <option key={c.empresa_id} value={c.nombre}>{c.nombre}</option>
                   ))}
                </select>
             </div>

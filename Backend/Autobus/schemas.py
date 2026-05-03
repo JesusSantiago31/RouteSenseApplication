@@ -5,7 +5,7 @@ from uuid import UUID
 class BusBase(BaseModel):
     placa: str
     capacidad: int
-    empresa_id: Optional[UUID] = None
+    empresa: str
     conductor_id: Optional[UUID] = None
     estado: bool = True
 

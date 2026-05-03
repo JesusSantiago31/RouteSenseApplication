@@ -19,9 +19,7 @@ class Autobus(Base):
     __table_args__ = {"schema": "transporte"}
     bus_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     conductor_id = Column(UUID(as_uuid=True), nullable=True)
-    empresa_id = Column(UUID(as_uuid=True), ForeignKey("transporte.empresas.empresa_id", ondelete="CASCADE"), nullable=True)
+    empresa = Column(String(100), nullable=False)
     placa = Column(String(15), unique=True, nullable=False)
     capacidad = Column(Integer, nullable=False)
     estado = Column(Boolean, nullable=False, default=True)
-
-    empresa = relationship("Empresa")
