@@ -72,7 +72,7 @@ export default function DriverForm({ show, onClose, onSubmit, onDelete, driverDa
                 className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-black uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all appearance-none cursor-pointer"
               >
                 <option value="">SELECCIONAR EMPRESA</option>
-                {companies.map(c => (
+                {companies?.map(c => (
                   <option key={c.empresa_id} value={c.empresa_id}>{c.nombre}</option>
                 ))}
               </select>

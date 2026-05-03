@@ -6,12 +6,16 @@ import models
 
 app = FastAPI(title="RouteSense Empresas API")
 
-# Crear tablas
-Base.metadata.create_all(bind=engine)
+@app.on_event("startup")
+def startup_event():
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        print(f"Error al crear tablas: {e}")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173", "https://routesense.onrender.com", "*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
