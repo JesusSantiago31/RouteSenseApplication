@@ -9,6 +9,11 @@ app = FastAPI(title="RouteSense Conductores API")
 # Movemos la creación de tablas para que no bloquee el arranque si falla la DB
 @app.on_event("startup")
 def startup_event():
+    db_url = os.getenv("DATABASE_URL")
+    if db_url:
+        print(f"DEBUG: DATABASE_URL encontrada. Comienza con: {db_url[:20]}...")
+    else:
+        print("DEBUG ERROR: DATABASE_URL NO ENCONTRADA")
     try:
         Base.metadata.create_all(bind=engine)
     except Exception as e:
@@ -16,8 +21,8 @@ def startup_event():
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "https://routesense.onrender.com", "*"],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
