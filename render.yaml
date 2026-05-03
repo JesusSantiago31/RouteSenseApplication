@@ -33,8 +33,19 @@ services:
   - type: web
     name: routesense-conductor
     runtime: docker
-    dockerContext: ./Backend/Conductor
-    dockerfilePath: Backend/Conductor/Dockerfile
+    dockerContext: ./Backend/Conductores
+    dockerfilePath: Backend/Conductores/Dockerfile
+    plan: free
+    region: ohio
+    envVars:
+      - fromGroup: routesense-shared
+
+  # 3.5 Servicio de Empresas
+  - type: web
+    name: routesense-empresas
+    runtime: docker
+    dockerContext: ./Backend/Empresas
+    dockerfilePath: Backend/Empresas/Dockerfile
     plan: free
     region: ohio
     envVars:
