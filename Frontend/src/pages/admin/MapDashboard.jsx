@@ -5,76 +5,93 @@ import { useNavigate } from 'react-router-dom';
 import { routeService } from '../../services/routeService';
 import { stopService } from '../../services/stopService';
 import { companyService } from '../../services/companyService';
+import { fleetService } from '../../services/fleetService';
 
 // Subcomponentes
 import Sidebar from './components/Sidebar';
 import StopForm from './components/StopForm';
 import RouteForm from './components/RouteForm';
 import MapContainer from './components/MapContainer';
+import CompanyForm from './components/CompanyForm';
+import BusForm from './components/BusForm';
+import DriverForm from './components/DriverForm';
 
 export default function MapDashboard() {
   const navigate = useNavigate();
   const [rutas, setRutas] = useState([]);
   const [paradas, setParadas] = useState([]);
-  const [companies, setCompanies] = useState([]);
   const [visibleRoutes, setVisibleRoutes] = useState([]);
   const [visibleStops, setVisibleStops] = useState([]);
   const [allRouteDetails, setAllRouteDetails] = useState({});
   
   // Estados de Filtros
-  const [filters, setFilters] = useState({
-    search: '',
-    color: '',
-    municipio: '',
-    estado: ''
-  });
+  const [filters, setFilters] = useState({ search: '', color: '', municipio: '', estado: '' });
 
   // Estados para Paradas
   const [showStopForm, setShowStopForm] = useState(false);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [clickedPos, setClickedPos] = useState(null);
-  const [newStop, setNewStop] = useState({ 
-    nombre: '', nombre_lugar: '', estado: '', municipio: '', 
-    localidad: 'Urbana', activa: true, latitud: '', longitud: '', color: '#3498db' 
-  });
+  const [newStop, setNewStop] = useState({ nombre: '', nombre_lugar: '', estado: '', municipio: '', localidad: 'Urbana', activa: true, latitud: '', longitud: '', color: '#3498db' });
 
   // Estados para Rutas
   const [showRouteForm, setShowRouteForm] = useState(false);
   const [editingRoute, setEditingRoute] = useState(null);
   const [isCreatingRoute, setIsCreatingRoute] = useState(false);
 
-  const { isLoaded } = useJsApiLoader({ 
-    id: 'google-map-script', 
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '' 
-  });
+  // Estados para Empresas
+  const [companies, setCompanies] = useState([]);
+  const [showCompanyForm, setShowCompanyForm] = useState(false);
+  const [editingCompany, setEditingCompany] = useState(null);
 
-  // CARGA DE DATOS
-  const fetchRutas = async () => {
-    const data = await routeService.getRoutes();
-    setRutas(data || []);
+  // Estados para Flota
+  const [buses, setBuses] = useState([]);
+  const [showBusForm, setShowBusForm] = useState(false);
+  const [editingBus, setEditingBus] = useState(null);
+
+  const [drivers, setDrivers] = useState([]);
+  const [showDriverForm, setShowDriverForm] = useState(false);
+  const [editingDriver, setEditingDriver] = useState(null);
+
+  const { isLoaded } = useJsApiLoader({ id: 'google-map-script', googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '' });
+
+  // CARGA DE DATOS ROBUSTA
+  const fetchData = async () => {
+    try {
+      const r = await routeService.getRoutes(); if (r) setRutas(r);
+      const p = await stopService.getStops(); if (p) setParadas(p);
+      const c = await companyService.getCompanies(); if (c) setCompanies(c);
+      
+      // Intentar cargar flota (pueden ser microservicios distintos)
+      try {
+        const b = await fleetService.getBuses(); if (b) setBuses(b);
+        const d = await fleetService.getDrivers(); if (d) setDrivers(d);
+      } catch (e) { console.warn("Error cargando flota:", e); }
+      
+    } catch (err) {
+      console.error("Error general en carga de datos:", err);
+    }
   };
 
-  const fetchParadas = async () => {
-    const data = await stopService.getStops();
-    setParadas(data || []);
-  };
+  useEffect(() => { fetchData(); }, []);
 
-  const fetchCompanies = async () => {
-    const data = await companyService.getCompanies();
-    setCompanies(data || []);
-  };
-
-  useEffect(() => { 
-    fetchRutas(); 
-    fetchParadas();
-    fetchCompanies();
-  }, []);
-
-  // OPCIONES PARA FILTROS (Extraídas de los datos reales)
+  // OPCIONES PARA FILTROS (Mapeo ultra-flexible)
   const filterOptions = useMemo(() => {
-    const colors = new Set([...rutas.map(r => r.color), ...paradas.map(p => p.color)].filter(Boolean));
-    const municipios = new Set(paradas.map(p => p.lugar?.municipio).filter(Boolean));
-    const estados = new Set(paradas.map(p => p.lugar?.estado).filter(Boolean));
+    const colors = new Set();
+    const municipios = new Set();
+    const estados = new Set();
+
+    rutas.forEach(r => { if (r.color) colors.add(r.color); });
+    
+    paradas.forEach(p => {
+      if (p.color) colors.add(p.color);
+      
+      // Intentar extraer municipio/estado de diferentes posibles estructuras
+      const m = p.lugar?.municipio || p.municipio;
+      const e = p.lugar?.estado || p.estado;
+      
+      if (m) municipios.add(m);
+      if (e) estados.add(e);
+    });
 
     return {
       colors: Array.from(colors),
@@ -83,11 +100,13 @@ export default function MapDashboard() {
     };
   }, [rutas, paradas]);
 
-  // LÓGICA DE FILTRADO (useMemo para rendimiento)
+  // LÓGICA DE FILTRADO (Universal + Específica)
   const filteredRutas = useMemo(() => {
     return rutas.filter(r => {
       const searchLower = filters.search.toLowerCase();
+      // Búsqueda Universal
       const matchSearch = r.nombre.toLowerCase().includes(searchLower);
+      // Filtros Específicos
       const matchColor = !filters.color || r.color === filters.color;
       return matchSearch && matchColor;
     });
@@ -96,275 +115,138 @@ export default function MapDashboard() {
   const filteredParadas = useMemo(() => {
     return paradas.filter(p => {
       const searchLower = filters.search.toLowerCase();
-      const matchSearch = p.nombre.toLowerCase().includes(searchLower) || 
-                         (p.nombre_lugar && p.nombre_lugar.toLowerCase().includes(searchLower));
+      const lugar = p.lugar || {};
       
+      // 1. Búsqueda Universal (Nombre, Municipio o Estado)
+      const matchSearch = 
+        p.nombre.toLowerCase().includes(searchLower) || 
+        (p.nombre_lugar && p.nombre_lugar.toLowerCase().includes(searchLower)) ||
+        (lugar.municipio && lugar.municipio.toLowerCase().includes(searchLower)) ||
+        (lugar.estado && lugar.estado.toLowerCase().includes(searchLower));
+      
+      // 2. Filtros Específicos (Selects)
       const matchColor = !filters.color || p.color === filters.color;
-      const matchMunicipio = !filters.municipio || p.lugar?.municipio === filters.municipio;
-      const matchEstado = !filters.estado || p.lugar?.estado === filters.estado;
+      const matchMunicipio = !filters.municipio || lugar.municipio === filters.municipio;
+      const matchEstado = !filters.estado || lugar.estado === filters.estado;
       
       return matchSearch && matchColor && matchMunicipio && matchEstado;
     });
   }, [paradas, filters]);
 
-  // HANDLERS DE VISIBILIDAD
+  // HANDLERS (VISIBILIDAD)
   const toggleRouteVisibility = async (rutaId) => {
-    if (visibleRoutes.includes(rutaId)) {
-      setVisibleRoutes(visibleRoutes.filter(id => id !== rutaId));
-    } else {
+    if (visibleRoutes.includes(rutaId)) { setVisibleRoutes(visibleRoutes.filter(id => id !== rutaId)); } 
+    else {
       if (!allRouteDetails[rutaId]) {
         const detalles = await routeService.getRouteDetails(rutaId);
-        if (detalles) {
-          setAllRouteDetails(prev => ({ ...prev, [rutaId]: detalles }));
-        }
+        if (detalles) setAllRouteDetails(prev => ({ ...prev, [rutaId]: detalles }));
       }
       setVisibleRoutes([...visibleRoutes, rutaId]);
     }
   };
 
-  const toggleStopVisibility = (stopId) => {
-    setVisibleStops(prev => 
-      prev.includes(stopId) ? prev.filter(id => id !== stopId) : [...prev, stopId]
-    );
-  };
-
-  const toggleAllStops = () => {
-    const ids = filteredParadas.map(p => p.parada_id);
-    const allVisible = ids.every(id => visibleStops.includes(id));
-    if (allVisible) {
-      setVisibleStops(prev => prev.filter(id => !ids.includes(id)));
-    } else {
-      setVisibleStops(prev => [...new Set([...prev, ...ids])]);
-    }
-  };
+  const toggleStopVisibility = (stopId) => setVisibleStops(prev => prev.includes(stopId) ? prev.filter(id => id !== stopId) : [...prev, stopId]);
+  const toggleAllStops = () => setVisibleStops(prev => prev.length === filteredParadas.length ? [] : filteredParadas.map(p => p.parada_id));
 
   // CRUD HANDLERS (ESTACIONES)
   const handleMapClick = async (e) => {
-    const lat = e.latLng.lat();
-    const lng = e.latLng.lng();
-    const latlng = { lat, lng };
-    
+    const latlng = { lat: e.latLng.lat(), lng: e.latLng.lng() };
     setClickedPos(latlng);
-    setNewStop(prev => ({ 
-      ...prev, 
-      latitud: lat.toFixed(6), 
-      longitud: lng.toFixed(6) 
-    }));
-
-    if (!showStopForm) setShowStopForm(true);
+    setNewStop(prev => ({ ...prev, latitud: latlng.lat.toFixed(6), longitud: latlng.lng.toFixed(6) }));
+    setShowStopForm(true);
     
-    // Iniciar geocodificación inversa
-    if (window.google && window.google.maps) {
+    if (window.google) {
       const geocoder = new window.google.maps.Geocoder();
       setIsGeocoding(true);
-      
       try {
-        const response = await geocoder.geocode({ location: latlng });
-        if (response.results[0]) {
-          const components = response.results[0].address_components;
-          const address = response.results[0].formatted_address;
-          
-          let estado = '';
-          let municipio = '';
-          let calle = address.split(',')[0]; // Intento obtener la calle del formato de dirección
-
-          components.forEach(component => {
-            if (component.types.includes('administrative_area_level_1')) {
-              estado = component.long_name;
-            }
-            if (component.types.includes('locality') || component.types.includes('administrative_area_level_2')) {
-              municipio = component.long_name;
-            }
-          });
-
-          setNewStop(prev => ({
-            ...prev,
-            nombre_lugar: calle,
-            estado: estado,
-            municipio: municipio
-          }));
+        const res = await geocoder.geocode({ location: latlng });
+        if (res.results[0]) {
+          const comp = res.results[0].address_components;
+          const est = comp.find(c => c.types.includes('administrative_area_level_1'))?.long_name || '';
+          const mun = comp.find(c => c.types.includes('locality') || c.types.includes('administrative_area_level_2'))?.long_name || '';
+          setNewStop(prev => ({ ...prev, nombre_lugar: res.results[0].formatted_address.split(',')[0], estado: est, municipio: mun }));
         }
-      } catch (error) {
-        console.error("Error en geocodificación:", error);
-      } finally {
-        setIsGeocoding(false);
-      }
-    }
-  };
-
-  // HANDLERS EMPRESAS
-  const handleCreateCompany = async (e) => {
-    e.preventDefault();
-    try {
-      await companyService.createCompany(newCompany);
-      alert(`Empresa "${newCompany.nombre}" registrada correctamente`);
-      setShowCompanyForm(false);
-      setNewCompany({ nombre: '', razon_social: '', telefono: '', color: '#1e293b' });
-      fetchCompanies();
-    } catch (err) {
-      alert(err.message);
+      } catch (err) { console.error(err); } finally { setIsGeocoding(false); }
     }
   };
 
   const handleCreateStop = async (e) => {
     e.preventDefault();
-    setIsGeocoding(true);
-    try {
-      await stopService.createStop(newStop);
-      alert("¡Estación Guardada!");
-      setShowStopForm(false);
-      setClickedPos(null);
-      setNewStop({ 
-        nombre: '', nombre_lugar: '', estado: '', municipio: '', 
-        localidad: 'Urbana', activa: true, latitud: '', longitud: '', color: '#3498db' 
-      });
-      fetchParadas();
-      fetchRutas();
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setIsGeocoding(false);
-    }
+    try { await stopService.createStop(newStop); setShowStopForm(false); fetchData(); } catch (err) { alert(err.message); }
   };
 
-  const handleDeleteStop = async (stopId) => {
-    if (window.confirm("¿Estás seguro de eliminar esta estación?")) {
-      try {
-        await stopService.deleteStop(stopId);
-        fetchParadas();
-        setVisibleStops(prev => prev.filter(id => id !== stopId));
-      } catch (err) {
-        alert(err.message);
-      }
-    }
-  };
+  const handleDeleteStop = async (id) => { if (window.confirm("¿Eliminar estación?")) { try { await stopService.deleteStop(id); fetchData(); } catch (err) { alert(err.message); } } };
 
   // CRUD HANDLERS (RUTAS)
-  const handleEditRoute = (ruta) => {
-    setEditingRoute(ruta);
-    setIsCreatingRoute(false);
-    setShowRouteForm(true);
-  };
-
-  const handleOpenNewRoute = () => {
-    setNewStop({ 
-      nombre: '', nombre_lugar: '', estado: '', municipio: '', 
-      localidad: 'Urbana', activa: true, latitud: '', longitud: '', color: '#3498db' 
-    });
-    setClickedPos(null);
-    setShowStopForm(true);
-    setShowRouteForm(false);
-  };
-
+  const handleEditRoute = (ruta) => { setEditingRoute(ruta); setIsCreatingRoute(false); setShowRouteForm(true); };
+  const handleOpenNewRoute = () => { setEditingRoute({ nombre: '', color: '#3498db', distancia_km: 0, tiempo_estimado: 0, activa: true }); setIsCreatingRoute(true); setShowRouteForm(true); };
   const handleSaveRoute = async (e) => {
     e.preventDefault();
     try {
-      if (isCreatingRoute) {
-        await routeService.createRoute(editingRoute);
-        alert("¡Ruta Creada!");
-      } else {
-        await routeService.updateRoute(editingRoute.ruta_id, {
-          nombre: editingRoute.nombre,
-          color: editingRoute.color,
-          distancia_km: editingRoute.distancia_km,
-          tiempo_estimado: editingRoute.tiempo_estimado,
-          origen_id: editingRoute.origen_id,
-          destino_id: editingRoute.destino_id
-        });
-        alert("¡Ruta Actualizada!");
-        // Limpiar cache de detalles
-        setAllRouteDetails(prev => {
-          const newDetails = { ...prev };
-          delete newDetails[editingRoute.ruta_id];
-          return newDetails;
-        });
-      }
-      setShowRouteForm(false);
-      fetchRutas();
-    } catch (err) {
-      alert("Error: " + err.message);
-    }
+      if (isCreatingRoute) await routeService.createRoute(editingRoute);
+      else await routeService.updateRoute(editingRoute.ruta_id, editingRoute);
+      setShowRouteForm(false); fetchData();
+    } catch (err) { alert(err.message); }
+  };
+  const handleDeleteRoute = async (id) => { if (window.confirm("¿Eliminar ruta?")) { try { await routeService.deleteRoute(id); fetchData(); } catch (err) { alert(err.message); } } };
+
+  // CRUD HANDLERS (EMPRESAS)
+  const handleEditCompany = (company) => { setEditingCompany(company); setShowCompanyForm(true); };
+  const handleSaveCompany = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingCompany.empresa_id) await companyService.updateCompany(editingCompany.empresa_id, editingCompany);
+      else await companyService.createCompany(editingCompany);
+      setShowCompanyForm(false); fetchData();
+    } catch (err) { alert(err.message); }
+  };
+  const handleDeleteCompany = async (id) => { if (window.confirm("¿Eliminar empresa?")) { try { await companyService.deleteCompany(id); fetchData(); } catch (err) { alert(err.message); } } };
+
+  // CRUD HANDLERS (FLOTA)
+  const handleEditBus = (bus) => { setEditingBus(bus); setShowBusForm(true); };
+  const handleSaveBus = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingBus.bus_id) await fleetService.updateBus(editingBus.bus_id, editingBus);
+      else await fleetService.createBus(editingBus);
+      setShowBusForm(false); fetchData();
+    } catch (err) { alert(err.message); }
   };
 
-  const handleDeleteRoute = async (rutaId) => {
-    if (window.confirm("¿Estás seguro de eliminar esta ruta completa?")) {
-      try {
-        await routeService.deleteRoute(rutaId);
-        fetchRutas();
-        setShowRouteForm(false);
-        setVisibleRoutes(prev => prev.filter(id => id !== rutaId));
-      } catch (err) {
-        alert("Error al eliminar: " + err.message);
-      }
-    }
+  const handleEditDriver = (driver) => { setEditingDriver(driver); setShowDriverForm(true); };
+  const handleSaveDriver = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingDriver.conductor_id) await fleetService.updateDriver(editingDriver.conductor_id, editingDriver);
+      else await fleetService.createDriver(editingDriver);
+      setShowDriverForm(false); fetchData();
+    } catch (err) { alert(err.message); }
   };
 
   return (
     <div className="h-screen flex bg-slate-50 overflow-hidden font-sans">
-      {/* SIDEBAR LATERAL COMPLETO */}
       <Sidebar 
-        rutas={filteredRutas}
-        paradas={filteredParadas}
-        visibleRoutes={visibleRoutes}
-        visibleStops={visibleStops}
-        toggleRouteVisibility={toggleRouteVisibility}
-        toggleStopVisibility={toggleStopVisibility}
-        toggleAllStops={toggleAllStops}
-        onNewRoute={handleOpenNewRoute}
-        onDeleteStop={handleDeleteStop}
-        
-        // Props Filtros
-        filters={filters}
-        setFilters={setFilters}
-        filterOptions={filterOptions}
-
-        // Props Paradas
-        showStopForm={showStopForm}
-        setShowStopForm={setShowStopForm}
-        handleCreateStop={handleCreateStop}
-        newStop={newStop}
-        setNewStop={setNewStop}
-        isGeocoding={isGeocoding}
-
-        // Props Rutas
-        showRouteForm={showRouteForm}
-        setShowRouteForm={setShowRouteForm}
-        onEditRoute={handleEditRoute}
-        editingRoute={editingRoute}
-        setEditingRoute={setEditingRoute}
-        onSaveRoute={handleSaveRoute}
-        onDeleteRoute={handleDeleteRoute}
-        isCreatingRoute={isCreatingRoute}
+        rutas={filteredRutas} paradas={filteredParadas} visibleRoutes={visibleRoutes} visibleStops={visibleStops} toggleRouteVisibility={toggleRouteVisibility} toggleStopVisibility={toggleStopVisibility} toggleAllStops={toggleAllStops} onNewRoute={handleOpenNewRoute} onDeleteStop={handleDeleteStop}
+        filters={filters} setFilters={setFilters}
+        showStopForm={showStopForm} setShowStopForm={setShowStopForm} handleCreateStop={handleCreateStop} newStop={newStop} setNewStop={setNewStop} isGeocoding={isGeocoding}
+        showRouteForm={showRouteForm} setShowRouteForm={setShowRouteForm} onEditRoute={handleEditRoute} editingRoute={editingRoute} setEditingRoute={setEditingRoute} onSaveRoute={handleSaveRoute} onDeleteRoute={handleDeleteRoute} isCreatingRoute={isCreatingRoute}
+        // Empresas
+        companies={companies} showCompanyForm={showCompanyForm} setShowCompanyForm={setShowCompanyForm} 
+        onEditCompany={handleEditCompany} editingCompany={editingCompany} setEditingCompany={setEditingCompany} onSaveCompany={handleSaveCompany} onDeleteCompany={handleDeleteCompany}
+        // Flota
+        buses={buses} showBusForm={showBusForm} setShowBusForm={setShowBusForm} onEditBus={handleEditBus} editingBus={editingBus} setEditingBus={setEditingBus} onSaveBus={handleSaveBus} onDeleteBus={(id) => fleetService.deleteBus(id).then(fetchData)}
+        drivers={drivers} showDriverForm={showDriverForm} setShowDriverForm={setShowDriverForm} onEditDriver={handleEditDriver} editingDriver={editingDriver} setEditingDriver={setEditingDriver} onSaveDriver={handleSaveDriver} onDeleteDriver={(id) => fleetService.deleteDriver(id).then(fetchData)}
       />
 
-      {/* CONTENIDO PRINCIPAL (NAVBAR + MAPA) */}
-      <main className="flex-1 flex flex-col min-w-0">
+      <main className="flex-1 flex flex-col min-w-0 relative">
         <nav className="bg-white/80 backdrop-blur-md px-8 py-3 flex justify-between items-center border-b border-slate-100 z-10">
           <div className="flex items-center gap-3">
-            <div className="bg-primary/10 text-primary p-2 rounded-lg">
-              <Navigation size={18} />
-            </div>
-            <span className="font-black text-lg tracking-tight text-slate-800">RouteSense Maps</span>
+            <span className="font-black text-lg tracking-tight text-slate-800">RouteSense Dashboard</span>
           </div>
-          <button 
-            onClick={() => { localStorage.removeItem('routesense_admin_token'); navigate('/login'); }} 
-            className="text-slate-400 hover:text-red-500 font-bold text-xs uppercase tracking-widest transition-colors flex items-center gap-2"
-          >
-            Cerrar Sesión
-          </button>
+          <button onClick={() => { localStorage.removeItem('routesense_admin_token'); navigate('/login'); }} className="text-slate-400 hover:text-red-500 font-bold text-xs uppercase tracking-widest flex items-center gap-2">Cerrar Sesión</button>
         </nav>
-
         <div className="flex-1 relative w-full h-full">
-          <MapContainer 
-            isLoaded={isLoaded}
-            clickedPos={clickedPos}
-            onMapClick={handleMapClick}
-            visibleRoutes={visibleRoutes}
-            allRouteDetails={allRouteDetails}
-            paradas={filteredParadas}
-            visibleStops={visibleStops}
-            newStopColor={newStop.color}
-          />
+          <MapContainer isLoaded={isLoaded} clickedPos={clickedPos} onMapClick={handleMapClick} visibleRoutes={visibleRoutes} allRouteDetails={allRouteDetails} paradas={filteredParadas} visibleStops={visibleStops} newStopColor={newStop.color} />
         </div>
       </main>
     </div>
