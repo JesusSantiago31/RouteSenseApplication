@@ -123,23 +123,39 @@ export default function BusForm({ show, onClose, onSubmit, onDelete, busData, co
             </div>
           </div>
 
-          {/* CHOFER */}
-          <div>
-            <label className="text-[10px] font-black text-primary mb-2.5 block tracking-[0.2em] uppercase opacity-80">
-              Chofer Asignado
-            </label>
-            <div className="relative group">
-               <UserCheck size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors z-10" />
-               <select
-                className="w-full pl-12 pr-4 py-4 bg-slate-50/50 border border-slate-100 rounded-[20px] font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:bg-white transition-all appearance-none shadow-sm cursor-pointer"
-                value={formData.conductor_id || ''}
-                onChange={e => setFormData({...formData, conductor_id: e.target.value})}
-               >
-                  <option value="">Sin chofer asignado</option>
-                  {Array.isArray(drivers) && drivers.filter(d => d.activo).map(d => (
-                    <option key={d.conductor_id} value={d.conductor_id}>{d.nombre}</option>
-                  ))}
-               </select>
+          {/* CHOFER Y COLOR */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-[10px] font-black text-primary mb-2.5 block tracking-[0.2em] uppercase opacity-80">
+                Chofer Asignado
+              </label>
+              <div className="relative group">
+                 <UserCheck size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors z-10" />
+                 <select
+                  className="w-full pl-12 pr-4 py-4 bg-slate-50/50 border border-slate-100 rounded-[20px] font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:bg-white transition-all appearance-none shadow-sm cursor-pointer"
+                  value={formData.conductor_id || ''}
+                  onChange={e => setFormData({...formData, conductor_id: e.target.value})}
+                 >
+                    <option value="">Sin chofer asignado</option>
+                    {Array.isArray(drivers) && drivers.filter(d => d.activo).map(d => (
+                      <option key={d.conductor_id} value={d.conductor_id}>{d.nombre}</option>
+                    ))}
+                 </select>
+              </div>
+            </div>
+            <div>
+              <label className="text-[10px] font-black text-primary mb-2.5 block tracking-[0.2em] uppercase opacity-80">
+                Color de Unidad
+              </label>
+              <div className="relative group">
+                 <div className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full shadow-sm border-2 border-white" style={{ backgroundColor: formData.color || '#3498db' }} />
+                 <input 
+                  type="color"
+                  className="w-full h-[54px] pl-12 pr-4 py-2 bg-slate-50/50 border border-slate-100 rounded-[20px] focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all cursor-pointer shadow-sm" 
+                  value={formData.color || '#3498db'} 
+                  onChange={e => setFormData({...formData, color: e.target.value})} 
+                 />
+              </div>
             </div>
           </div>
 

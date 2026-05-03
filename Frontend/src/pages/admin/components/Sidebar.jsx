@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Activity, Eye, EyeOff, Plus, Trash2, Edit2, Search,
-  Map as MapIcon, Truck, Building2, User, UserCheck,
+  Map as MapIcon, Truck, Building2, User, UserCheck, Users,
   ChevronRight, MapPinned
 } from 'lucide-react';
 import StopForm from './StopForm';
@@ -23,6 +23,7 @@ export default function Sidebar({
 }) {
   const [activeTab, setActiveTab] = useState('operativo'); 
   const [companySearchTerm, setCompanySearchTerm] = useState('');
+  const [flotaTab, setFlotaTab] = useState('conductores'); // 'conductores' | 'autobuses'
 
   const options = {
     municipios: filterOptions?.municipios || [],
@@ -213,41 +214,104 @@ export default function Sidebar({
                                 className="w-full bg-slate-50 border border-slate-100 pl-11 pr-4 py-3 rounded-[18px] text-[10px] font-black uppercase tracking-wider text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
                             />
                         </div>
+                        {/* TABS INTERNAS DE FLOTA */}
+                        <div className="flex bg-slate-50 p-1 rounded-[20px] mt-2 border border-slate-100">
+                           <button 
+                             onClick={() => setFlotaTab('conductores')} 
+                             className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-[16px] transition-all ${flotaTab === 'conductores' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                           >
+                             Conductores
+                           </button>
+                           <button 
+                             onClick={() => setFlotaTab('autobuses')} 
+                             className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-[16px] transition-all ${flotaTab === 'autobuses' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                           >
+                             Autobuses
+                           </button>
+                        </div>
                     </div>
                 </header>
 
                 <div className="flex-1 overflow-y-auto pr-1 space-y-6 custom-scrollbar pb-24">
                     {/* SECCIÓN CONDUCTORES */}
-                    <section>
-                      <div className="flex justify-between items-center mb-3 px-2">
-                         <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Conductores ({drivers.length})</h5>
-                      </div>
-                      <div className="space-y-2">
-                        {drivers.map(driver => {
-                          const empresa = companies.find(c => c.empresa_id === driver.empresa_id);
-                          return (
-                            <div key={driver.conductor_id} onClick={() => { setEditingDriver(driver); setShowDriverForm(true); }} className="flex items-center gap-3 p-3 rounded-[22px] bg-white border border-slate-100 hover:border-primary/30 hover:shadow-lg hover:shadow-slate-200/50 transition-all cursor-pointer group">
-                               <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                                  <User size={18} />
-                               </div>
-                               <div className="flex-1 min-w-0">
-                                  <p className="text-[12px] font-black text-slate-800 uppercase truncate">{driver.nombre}</p>
-                                  <div className="flex items-center gap-2">
-                                     <span className="text-[9px] font-bold text-slate-400 tracking-wider">LIC: {driver.licencia}</span>
-                                     {empresa && (
-                                       <>
-                                         <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
-                                         <span className="text-[9px] font-black uppercase tracking-wider" style={{ color: empresa.color }}>{empresa.nombre}</span>
-                                       </>
-                                     )}
-                                  </div>
-                               </div>
-                               <ChevronRight size={14} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </section>
+                    {flotaTab === 'conductores' && (
+                      <section className="animate-in fade-in duration-300">
+                        <div className="flex justify-between items-center mb-3 px-2">
+                           <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Conductores Registrados ({drivers.length})</h5>
+                        </div>
+                        <div className="space-y-2">
+                          {drivers.map(driver => {
+                            const empresa = companies.find(c => c.empresa_id === driver.empresa_id);
+                            return (
+                              <div key={driver.conductor_id} onClick={() => { setEditingDriver(driver); setShowDriverForm(true); }} className="flex items-center gap-3 p-3 rounded-[22px] bg-white border border-slate-100 hover:border-primary/30 hover:shadow-lg hover:shadow-slate-200/50 transition-all cursor-pointer group">
+                                 <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                                    <User size={18} />
+                                 </div>
+                                 <div className="flex-1 min-w-0">
+                                    <p className="text-[12px] font-black text-slate-800 uppercase truncate">{driver.nombre}</p>
+                                    <div className="flex items-center gap-2">
+                                       <span className="text-[9px] font-bold text-slate-400 tracking-wider">LIC: {driver.licencia}</span>
+                                       {empresa && (
+                                         <>
+                                           <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
+                                           <span className="text-[9px] font-black uppercase tracking-wider" style={{ color: empresa.color }}>{empresa.nombre}</span>
+                                         </>
+                                       )}
+                                    </div>
+                                 </div>
+                                 <ChevronRight size={14} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </section>
+                    )}
+
+                    {/* SECCIÓN AUTOBUSES */}
+                    {flotaTab === 'autobuses' && (
+                      <section className="animate-in fade-in duration-300">
+                        <div className="flex justify-between items-center mb-3 px-2">
+                           <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Autobuses Registrados ({buses?.length || 0})</h5>
+                        </div>
+                        <div className="space-y-2">
+                          {buses?.map(bus => {
+                            const chofer = drivers.find(d => d.conductor_id === bus.conductor_id);
+                            return (
+                              <div key={bus.bus_id} onClick={() => { setEditingBus(bus); setShowBusForm(true); }} className="flex items-center gap-3 p-3 rounded-[22px] bg-white border border-slate-100 hover:border-primary/30 hover:shadow-lg hover:shadow-slate-200/50 transition-all cursor-pointer group">
+                                 <div className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-md transition-transform group-hover:scale-110" style={{ backgroundColor: bus.color || '#3498db' }}>
+                                    <Truck size={16} />
+                                 </div>
+                                 <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <p className="text-[13px] font-black text-slate-800 uppercase truncate">{bus.placa}</p>
+                                      {bus.estado ? (
+                                          <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-500 text-[8px] font-black tracking-widest uppercase">Activo</span>
+                                      ) : (
+                                          <span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-500 text-[8px] font-black tracking-widest uppercase">Inactivo</span>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                       <span className="text-[9px] font-bold text-slate-400 tracking-wider flex items-center gap-1"><Users size={10}/> {bus.capacidad} PAX</span>
+                                       {bus.empresa && (
+                                         <>
+                                           <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
+                                           <span className="text-[9px] font-black uppercase tracking-wider" style={{ color: bus.color || '#3498db' }}>{bus.empresa}</span>
+                                         </>
+                                       )}
+                                    </div>
+                                    {chofer && (
+                                      <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase flex items-center gap-1">
+                                        <UserCheck size={10} className="text-primary"/> {chofer.nombre}
+                                      </p>
+                                    )}
+                                 </div>
+                                 <ChevronRight size={14} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </section>
+                    )}
                 </div>
               </div>
             )}

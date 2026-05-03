@@ -31,16 +31,28 @@ export const fleetService = {
     } catch (error) { return []; }
   },
   createBus: async (data) => {
-    const response = await apiFlota.post('/buses/', data);
-    return response.data;
+    try {
+      const response = await apiFlota.post('/buses/', data);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.detail || error.message);
+    }
   },
   updateBus: async (id, data) => {
-    const response = await apiFlota.put(`/buses/${id}`, data);
-    return response.data;
+    try {
+      const response = await apiFlota.put(`/buses/${id}`, data);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.detail || error.message);
+    }
   },
   deleteBus: async (id) => {
-    const response = await apiFlota.delete(`/buses/${id}`);
-    return response.data;
+    try {
+      const response = await apiFlota.delete(`/buses/${id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.detail || error.message);
+    }
   },
 
   // --- CONDUCTORES ---
@@ -51,15 +63,27 @@ export const fleetService = {
     } catch (error) { return []; }
   },
   createDriver: async (data) => {
-    const response = await apiConductores.post('/conductores/', data);
-    return response.data;
+    try {
+      const response = await apiConductores.post('/conductores/', data);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.detail || error.message);
+    }
   },
   updateDriver: async (id, data) => {
-    const response = await apiConductores.put(`/conductores/${id}`, data);
-    return response.data;
+    try {
+      const response = await apiConductores.put(`/conductores/${id}`, data);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.detail || error.message);
+    }
   },
   deleteDriver: async (id) => {
-    const response = await apiConductores.delete(`/conductores/${id}`);
-    return response.data;
+    try {
+      const response = await apiConductores.delete(`/conductores/${id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.detail || error.message);
+    }
   }
 };
