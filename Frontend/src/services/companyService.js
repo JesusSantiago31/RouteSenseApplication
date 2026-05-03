@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const apiEmpresas = axios.create({
-  baseURL: import.meta.env.VITE_API_AUTOBUS_URL || 'http://localhost:8002', // Ajustar según el puerto de Autobus
+  baseURL: import.meta.env.VITE_API_EMPRESAS_URL || 'http://localhost:8002', 
   headers: {
     'Content-Type': 'application/json',
   },
