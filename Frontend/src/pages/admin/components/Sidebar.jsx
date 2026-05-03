@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { 
-  Activity, Eye, EyeOff, Plus, Trash2, Edit2, Search, Filter, 
-  Map as MapIcon, Truck, Building2, User, Hash, Users, ShieldCheck, 
-  ChevronRight, Info, ChevronDown, MapPin, Palette, MapPinned
+  Activity, Eye, EyeOff, Plus, Trash2, Edit2, Search,
+  Map as MapIcon, Truck, Building2, User, UserCheck,
+  ChevronRight, MapPinned
 } from 'lucide-react';
 import StopForm from './StopForm';
 import RouteForm from './RouteForm';
@@ -37,12 +37,11 @@ export default function Sidebar({
 
   return (
     <aside className="w-[420px] bg-white h-full flex flex-col relative border-r border-slate-100 z-20 shadow-xl shadow-slate-200/50">
-        <DriverForm show={showDriverForm} onClose={() => setShowDriverForm(false)} onSubmit={onSaveDriver} onDelete={onDeleteDriver} driverData={editingDriver} companies={companies} />
         <StopForm show={showStopForm} onClose={() => setShowStopForm(false)} onSubmit={handleCreateStop} newStop={newStop} setNewStop={setNewStop} isGeocoding={isGeocoding} />
         <RouteForm show={showRouteForm} onClose={() => setShowRouteForm(false)} onSubmit={onSaveRoute} onDelete={onDeleteRoute} routeData={editingRoute} setRouteData={setEditingRoute} isCreating={isCreatingRoute} />
         <CompanyForm show={showCompanyForm} onClose={() => setShowCompanyForm(false)} onSubmit={onSaveCompany} companyData={editingCompany} setCompanyData={setEditingCompany} />
-        <BusForm show={showBusForm} onClose={() => setShowBusForm(false)} onSubmit={onSaveBus} data={editingBus} setData={setEditingBus} companies={companies} drivers={drivers} />
-        <DriverForm show={showDriverForm} onClose={() => setShowDriverForm(false)} onSubmit={onSaveDriver} data={editingDriver} setData={setEditingDriver} />
+        <BusForm key={`bus-${showBusForm}`} show={showBusForm} onClose={() => setShowBusForm(false)} onSubmit={onSaveBus} onDelete={onDeleteBus} busData={editingBus} companies={companies} drivers={drivers} />
+        <DriverForm key={`driver-${showDriverForm}`} show={showDriverForm} onClose={() => setShowDriverForm(false)} onSubmit={onSaveDriver} onDelete={onDeleteDriver} driverData={editingDriver} companies={companies} />
 
         {/* TABS NAVEGACIÓN */}
         <div className="flex p-4 gap-2 bg-slate-50/50 border-b border-slate-100">

@@ -199,6 +199,20 @@ export default function MapDashboard() {
     }
   };
 
+  const onSaveBus = async (data) => {
+    try {
+      if (data.bus_id) await fleetService.updateBus(data.bus_id, data);
+      else await fleetService.createBus(data);
+      setShowBusForm(false);
+      fetchData();
+    } catch (err) { alert(err.message); }
+  };
+
+  const onDeleteBus = async (id) => {
+    try { await fleetService.deleteBus(id); setShowBusForm(false); fetchData(); }
+    catch (err) { alert(err.message); }
+  };
+
   return (
     <div className="h-screen flex bg-slate-50 overflow-hidden font-sans">
       <Sidebar 
@@ -207,7 +221,7 @@ export default function MapDashboard() {
         showStopForm={showStopForm} setShowStopForm={setShowStopForm} handleCreateStop={handleCreateStop} newStop={newStop} setNewStop={setNewStop} isGeocoding={isGeocoding}
         showRouteForm={showRouteForm} setShowRouteForm={setShowRouteForm} onEditRoute={onEditRoute} editingRoute={editingRoute} setRouteData={setEditingRoute} onSaveRoute={onSaveRoute} onDeleteRoute={() => {}} isCreatingRoute={isCreatingRoute}
         companies={companies} showCompanyForm={showCompanyForm} setShowCompanyForm={setShowCompanyForm} onEditCompany={onEditRoute} editingCompany={editingCompany} setEditingCompany={setEditingCompany} onSaveCompany={async (e) => { e.preventDefault(); try { if (editingCompany?.empresa_id) await companyService.updateCompany(editingCompany.empresa_id, editingCompany); else await companyService.createCompany(editingCompany); setShowCompanyForm(false); fetchData(); } catch(err) { alert(err.message); } }} onDeleteCompany={async (id) => { if(confirm("¿Eliminar?")) { await companyService.deleteCompany(id); fetchData(); } }}
-        buses={buses} showBusForm={showBusForm} setShowBusForm={setShowBusForm} 
+        buses={buses} showBusForm={showBusForm} setShowBusForm={setShowBusForm} editingBus={editingBus} setEditingBus={setEditingBus} onSaveBus={onSaveBus} onDeleteBus={onDeleteBus}
         drivers={drivers} showDriverForm={showDriverForm} setShowDriverForm={setShowDriverForm} editingDriver={editingDriver} setEditingDriver={setEditingDriver} onSaveDriver={onSaveDriver} onDeleteDriver={onDeleteDriver}
       />
       <main className="flex-1 relative flex flex-col min-w-0">
