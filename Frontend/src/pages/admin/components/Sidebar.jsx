@@ -159,28 +159,32 @@ export default function Sidebar({
                     </div>
                 </header>
 
-                <div className="flex-1 overflow-y-auto pr-1 space-y-2.5 custom-scrollbar pb-24">
+                <div className="flex-1 overflow-y-auto pr-1 space-y-3 custom-scrollbar pb-24">
                     {companies
                       .filter(c => 
                         c.nombre.toLowerCase().includes(companySearchTerm.toLowerCase()) ||
                         c.razon_social.toLowerCase().includes(companySearchTerm.toLowerCase())
                       )
                       .map(company => (
-                        <div key={company.empresa_id} className="relative p-4 rounded-[28px] bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all group overflow-hidden">
+                        <div key={company.empresa_id} className="relative p-5 rounded-[32px] bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all group overflow-hidden">
+                            {/* RESTAURANDO CÍRCULO DE FONDO */}
+                            <div className="absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full opacity-[0.05]" style={{ backgroundColor: company.color }} />
+                            
                             <div className="relative flex items-center gap-4">
-                               <div className="w-12 h-12 rounded-[18px] flex items-center justify-center shadow-lg border-2 border-white transform group-hover:rotate-6 transition-transform flex-shrink-0" style={{ backgroundColor: company.color, color: 'white' }}><Building2 size={20} /></div>
+                               <div className="w-14 h-14 rounded-[20px] flex items-center justify-center shadow-xl border-4 border-white transform group-hover:rotate-6 transition-transform flex-shrink-0" style={{ backgroundColor: company.color, color: 'white' }}>
+                                  <Building2 size={24} />
+                               </div>
                                <div className="flex-1 min-w-0">
-                                  <h4 className="font-black text-sm text-slate-800 tracking-tighter truncate leading-tight">{company.nombre}</h4>
-                                  <div className="flex items-center gap-2 mt-0.5">
-                                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate">{company.razon_social}</span>
-                                     <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
-                                     <span className="text-[9px] font-black text-primary uppercase tracking-wider whitespace-nowrap">{company.telefono}</span>
+                                  <h4 className="font-black text-base text-slate-800 tracking-tighter truncate leading-tight">{company.nombre}</h4>
+                                  <div className="flex items-center gap-2 mt-1">
+                                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">{company.razon_social}</span>
+                                     <span className="text-[10px] font-black text-primary uppercase tracking-widest">{company.telefono}</span>
                                   </div>
                                </div>
                             </div>
-                            <div className="mt-3 pt-3 border-t border-slate-50 flex gap-2">
-                               <button onClick={() => { setEditingCompany(company); setShowCompanyForm(true); }} className="flex-1 py-2.5 bg-slate-50 text-slate-500 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all">Configurar</button>
-                               <button onClick={() => onDeleteCompany(company.empresa_id)} className="px-3 py-2.5 bg-red-50 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition-all"><Trash2 size={15} /></button>
+                            <div className="mt-4 pt-4 border-t border-slate-50 flex gap-2">
+                               <button onClick={() => { setEditingCompany(company); setShowCompanyForm(true); }} className="flex-1 py-3 bg-slate-50 text-slate-600 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-slate-900 hover:text-white transition-all">Configurar</button>
+                               <button onClick={() => onDeleteCompany(company.empresa_id)} className="px-4 py-3 bg-red-50 text-red-400 rounded-2xl hover:bg-red-500 hover:text-white transition-all"><Trash2 size={18} /></button>
                             </div>
                         </div>
                     ))}
