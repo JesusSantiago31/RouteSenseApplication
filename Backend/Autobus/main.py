@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from utils.limiter import limiter
-from routers import create_bus, list_buses
+from routers import create_bus, list_buses, update_bus, delete_bus
 from database import Base, engine
 import models
 import os
@@ -37,3 +37,5 @@ def read_root():
 # Quitamos los routers de empresas y conductores porque ya tienen su propio microservicio
 app.include_router(create_bus.router)
 app.include_router(list_buses.router)
+app.include_router(update_bus.router)
+app.include_router(delete_bus.router)
