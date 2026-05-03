@@ -24,7 +24,9 @@ export default function DriverForm({ show, onClose, onSubmit, onDelete, driverDa
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    const payload = { ...formData };
+    if (!payload.empresa_id) payload.empresa_id = null;
+    onSubmit(payload);
   };
 
   return (
