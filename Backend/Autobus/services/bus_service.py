@@ -6,9 +6,11 @@ def create_bus(db: Session, data: BusCreate):
     bus = Autobus(
         placa=data.placa,
         capacidad=data.capacidad,
+        empresa_id=data.empresa_id,
         empresa=data.empresa,
         conductor_id=data.conductor_id,
-        estado=data.estado
+        estado=data.estado,
+        color=data.color
     )
     db.add(bus)
     db.commit()

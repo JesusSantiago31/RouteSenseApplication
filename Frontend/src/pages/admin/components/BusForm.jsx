@@ -5,9 +5,11 @@ export default function BusForm({ show, onClose, onSubmit, onDelete, busData, co
   const [formData, setFormData] = useState({
     placa: '',
     capacidad: 40,
+    empresa_id: '',
     empresa: '',
     conductor_id: '',
-    estado: true
+    estado: true,
+    color: '#3498db'
   });
 
   useEffect(() => {
@@ -15,18 +17,21 @@ export default function BusForm({ show, onClose, onSubmit, onDelete, busData, co
       setFormData({
         placa: busData.placa || '',
         capacidad: busData.capacidad || 40,
+        empresa_id: busData.empresa_id || '',
         empresa: busData.empresa || '',
         conductor_id: busData.conductor_id || '',
-        estado: busData.estado !== undefined ? busData.estado : true
+        estado: busData.estado !== undefined ? busData.estado : true,
+        color: busData.color || '#3498db'
       });
     } else {
-      setFormData({ placa: '', capacidad: 40, empresa: '', conductor_id: '', estado: true });
+      setFormData({ placa: '', capacidad: 40, empresa_id: '', empresa: '', conductor_id: '', estado: true, color: '#3498db' });
     }
   }, [busData, show]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const payload = { ...formData };
+    if (!payload.empresa_id) payload.empresa_id = null;
     if (!payload.conductor_id) payload.conductor_id = null;
     onSubmit(payload);
   };
@@ -97,13 +102,22 @@ export default function BusForm({ show, onClose, onSubmit, onDelete, busData, co
                <Building2 size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors z-10" />
                <select
                 className="w-full pl-12 pr-4 py-4 bg-slate-50/50 border border-slate-100 rounded-[20px] font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:bg-white transition-all appearance-none shadow-sm cursor-pointer"
-                value={formData.empresa || ''}
-                onChange={e => setFormData({...formData, empresa: e.target.value})}
+                value={formData.empresa_id || ''}
+                onChange={e => {
+                  const selectedId = e.target.value;
+                  const selectedCompany = companies.find(c => c.empresa_id === selectedId);
+                  setFormData({
+                    ...formData, 
+                    empresa_id: selectedId,
+                    empresa: selectedCompany ? selectedCompany.nombre : '',
+                    color: selectedCompany && selectedCompany.color ? selectedCompany.color : '#3498db'
+                  });
+                }}
                 required
                >
                   <option value="">Seleccionar Empresa</option>
                   {Array.isArray(companies) && companies.map(c => (
-                    <option key={c.empresa_id} value={c.nombre}>{c.nombre}</option>
+                    <option key={c.empresa_id} value={c.empresa_id}>{c.nombre}</option>
                   ))}
                </select>
             </div>

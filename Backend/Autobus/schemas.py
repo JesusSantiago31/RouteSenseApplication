@@ -5,9 +5,11 @@ from uuid import UUID
 class BusBase(BaseModel):
     placa: str
     capacidad: int
-    empresa: str
+    empresa_id: Optional[UUID] = None
+    empresa: Optional[str] = None
     conductor_id: Optional[UUID] = None
     estado: bool = True
+    color: Optional[str] = None
 
 class BusCreate(BusBase):
     pass
