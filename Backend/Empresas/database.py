@@ -5,8 +5,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Usamos la variable de entorno de Render, igual que en el servicio de Paradas
+# Usamos exactamente la misma lógica que en Paradas
 DATABASE_URL = os.getenv("DATABASE_URL")
+
+# Forzamos el driver psycopg2 si no viene en la URL de Render
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
+elif DATABASE_URL and DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
