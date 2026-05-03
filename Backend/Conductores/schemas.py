@@ -5,6 +5,7 @@ from typing import Optional
 class ConductorBase(BaseModel):
     nombre: str
     licencia: str
+    empresa_id: Optional[UUID] = None
     activo: bool = True
 
 class ConductorCreate(ConductorBase):

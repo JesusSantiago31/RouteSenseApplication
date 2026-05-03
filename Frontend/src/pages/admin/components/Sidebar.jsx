@@ -22,6 +22,7 @@ export default function Sidebar({
   drivers, showDriverForm, setShowDriverForm, onEditDriver, editingDriver, setEditingDriver, onSaveDriver, onDeleteDriver
 }) {
   const [activeTab, setActiveTab] = useState('operativo'); 
+  const [companySearchTerm, setCompanySearchTerm] = useState('');
 
   const options = {
     municipios: filterOptions?.municipios || [],
@@ -36,6 +37,7 @@ export default function Sidebar({
 
   return (
     <aside className="w-[420px] bg-white h-full flex flex-col relative border-r border-slate-100 z-20 shadow-xl shadow-slate-200/50">
+        <DriverForm show={showDriverForm} onClose={() => setShowDriverForm(false)} onSubmit={onSaveDriver} onDelete={onDeleteDriver} driverData={editingDriver} companies={companies} />
         <StopForm show={showStopForm} onClose={() => setShowStopForm(false)} onSubmit={handleCreateStop} newStop={newStop} setNewStop={setNewStop} isGeocoding={isGeocoding} />
         <RouteForm show={showRouteForm} onClose={() => setShowRouteForm(false)} onSubmit={onSaveRoute} onDelete={onDeleteRoute} routeData={editingRoute} setRouteData={setEditingRoute} isCreating={isCreatingRoute} />
         <CompanyForm show={showCompanyForm} onClose={() => setShowCompanyForm(false)} onSubmit={onSaveCompany} companyData={editingCompany} setCompanyData={setEditingCompany} />
@@ -135,30 +137,50 @@ export default function Sidebar({
 
             {/* CONTENIDO PESTAÑA: EMPRESAS */}
             {activeTab === 'empresas' && (
-              <div className="animate-in fade-in slide-in-from-right-4 duration-500 px-6 py-8">
-                <header className="mb-8">
-                    <p className="text-primary font-black text-[11px] tracking-widest uppercase opacity-60">Directorio Aliado</p>
-                    <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight">Empresas de Transporte</h2>
-                    <button onClick={handleNewCompany} className="w-full mt-6 flex items-center justify-center gap-2 py-4 bg-slate-900 text-white rounded-[24px] font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-200 hover:bg-primary transition-all active:scale-95"><Plus size={18} /> Registrar Empresa</button>
+              <div className="animate-in fade-in slide-in-from-right-4 duration-500 px-6 py-6 h-full flex flex-col">
+                <header className="mb-4">
+                    <p className="text-primary font-black text-[10px] tracking-widest uppercase opacity-60">Directorio Aliado</p>
+                    <h2 className="text-xl font-extrabold text-slate-800 tracking-tight">Empresas de Transporte</h2>
+                    
+                    <div className="flex flex-col gap-3 mt-4">
+                        <button onClick={handleNewCompany} className="w-full flex items-center justify-center gap-2 py-3.5 bg-slate-900 text-white rounded-[20px] font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-primary transition-all active:scale-95"><Plus size={16} strokeWidth={3} /> Registrar Empresa</button>
+                        
+                        {/* BUSCADOR GENERAL */}
+                        <div className="relative group">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" size={14} />
+                            <input 
+                                type="text" 
+                                placeholder="BUSCAR EMPRESA O RAZÓN SOCIAL..."
+                                value={companySearchTerm}
+                                onChange={(e) => setCompanySearchTerm(e.target.value)}
+                                className="w-full bg-slate-50 border border-slate-100 pl-11 pr-4 py-3 rounded-[18px] text-[10px] font-black uppercase tracking-wider text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
+                            />
+                        </div>
+                    </div>
                 </header>
 
-                <div className="space-y-4 pb-20">
-                    {companies.map(company => (
-                        <div key={company.empresa_id} className="relative p-6 rounded-[40px] bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all group overflow-hidden">
-                            <div className="absolute top-0 right-0 w-32 h-32 -mr-12 -mt-12 rounded-full opacity-[0.03]" style={{ backgroundColor: company.color }} />
-                            <div className="relative flex items-center gap-5">
-                               <div className="w-16 h-16 rounded-[24px] flex items-center justify-center shadow-2xl border-4 border-white transform group-hover:rotate-6 transition-transform" style={{ backgroundColor: company.color, color: 'white' }}><Building2 size={28} /></div>
+                <div className="flex-1 overflow-y-auto pr-1 space-y-2.5 custom-scrollbar pb-24">
+                    {companies
+                      .filter(c => 
+                        c.nombre.toLowerCase().includes(companySearchTerm.toLowerCase()) ||
+                        c.razon_social.toLowerCase().includes(companySearchTerm.toLowerCase())
+                      )
+                      .map(company => (
+                        <div key={company.empresa_id} className="relative p-4 rounded-[28px] bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all group overflow-hidden">
+                            <div className="relative flex items-center gap-4">
+                               <div className="w-12 h-12 rounded-[18px] flex items-center justify-center shadow-lg border-2 border-white transform group-hover:rotate-6 transition-transform flex-shrink-0" style={{ backgroundColor: company.color, color: 'white' }}><Building2 size={20} /></div>
                                <div className="flex-1 min-w-0">
-                                  <h4 className="font-black text-lg text-slate-800 tracking-tighter truncate">{company.nombre}</h4>
-                                  <div className="flex items-center gap-2 mt-1.5 overflow-hidden">
-                                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">{company.razon_social}</span>
-                                     <span className="text-[10px] font-black text-primary uppercase tracking-widest">{company.telefono}</span>
+                                  <h4 className="font-black text-sm text-slate-800 tracking-tighter truncate leading-tight">{company.nombre}</h4>
+                                  <div className="flex items-center gap-2 mt-0.5">
+                                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate">{company.razon_social}</span>
+                                     <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
+                                     <span className="text-[9px] font-black text-primary uppercase tracking-wider whitespace-nowrap">{company.telefono}</span>
                                   </div>
                                </div>
                             </div>
-                            <div className="mt-6 pt-6 border-t border-slate-50 flex gap-2">
-                               <button onClick={() => { setEditingCompany(company); setShowCompanyForm(true); }} className="flex-1 py-3 bg-slate-50 text-slate-600 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-slate-900 hover:text-white transition-all">Configurar</button>
-                               <button onClick={() => onDeleteCompany(company.empresa_id)} className="px-4 py-3 bg-red-50 text-red-400 rounded-2xl hover:bg-red-500 hover:text-white transition-all"><Trash2 size={18} /></button>
+                            <div className="mt-3 pt-3 border-t border-slate-50 flex gap-2">
+                               <button onClick={() => { setEditingCompany(company); setShowCompanyForm(true); }} className="flex-1 py-2.5 bg-slate-50 text-slate-500 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all">Configurar</button>
+                               <button onClick={() => onDeleteCompany(company.empresa_id)} className="px-3 py-2.5 bg-red-50 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition-all"><Trash2 size={15} /></button>
                             </div>
                         </div>
                     ))}
@@ -166,12 +188,64 @@ export default function Sidebar({
               </div>
             )}
 
-            {/* CONTENIDO PESTAÑA: FLOTA (Placeholder por ahora) */}
+            {/* CONTENIDO PESTAÑA: FLOTA */}
             {activeTab === 'flota' && (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col items-center justify-center h-full px-10 text-center">
-                 <div className="w-20 h-20 bg-slate-50 rounded-[32px] flex items-center justify-center text-slate-200 mb-6"><Truck size={40} /></div>
-                 <h4 className="text-slate-400 font-black text-xs uppercase tracking-widest">Gestión de Flota</h4>
-                 <p className="text-slate-300 text-[10px] mt-2 font-bold uppercase">Próximamente: Administración de Autobuses y Conductores.</p>
+              <div className="animate-in fade-in slide-in-from-right-4 duration-500 px-6 py-6 h-full flex flex-col">
+                <header className="mb-4">
+                    <p className="text-primary font-black text-[10px] tracking-widest uppercase opacity-60">Gestión de Activos</p>
+                    <h2 className="text-xl font-extrabold text-slate-800 tracking-tight">Personal y Unidades</h2>
+                    
+                    <div className="flex flex-col gap-3 mt-4">
+                        <div className="flex gap-2">
+                           <button onClick={() => { setEditingDriver(null); setShowDriverForm(true); }} className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-slate-900 text-white rounded-[20px] font-black text-[9px] uppercase tracking-widest shadow-lg hover:bg-primary transition-all active:scale-95"><User size={15} /> + Chofer</button>
+                           <button onClick={() => { setEditingBus(null); setShowBusForm(true); }} className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-slate-100 text-slate-600 rounded-[20px] font-black text-[9px] uppercase tracking-widest hover:bg-slate-200 transition-all active:scale-95"><Truck size={15} /> + Autobús</button>
+                        </div>
+                        
+                        {/* BUSCADOR DE FLOTA */}
+                        <div className="relative group">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" size={14} />
+                            <input 
+                                type="text" 
+                                placeholder="BUSCAR CHOFER O UNIDAD..."
+                                className="w-full bg-slate-50 border border-slate-100 pl-11 pr-4 py-3 rounded-[18px] text-[10px] font-black uppercase tracking-wider text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
+                            />
+                        </div>
+                    </div>
+                </header>
+
+                <div className="flex-1 overflow-y-auto pr-1 space-y-6 custom-scrollbar pb-24">
+                    {/* SECCIÓN CONDUCTORES */}
+                    <section>
+                      <div className="flex justify-between items-center mb-3 px-2">
+                         <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Conductores ({drivers.length})</h5>
+                      </div>
+                      <div className="space-y-2">
+                        {drivers.map(driver => {
+                          const empresa = companies.find(c => c.empresa_id === driver.empresa_id);
+                          return (
+                            <div key={driver.conductor_id} onClick={() => { setEditingDriver(driver); setShowDriverForm(true); }} className="flex items-center gap-3 p-3 rounded-[22px] bg-white border border-slate-100 hover:border-primary/30 hover:shadow-lg hover:shadow-slate-200/50 transition-all cursor-pointer group">
+                               <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                                  <User size={18} />
+                               </div>
+                               <div className="flex-1 min-w-0">
+                                  <p className="text-[12px] font-black text-slate-800 uppercase truncate">{driver.nombre}</p>
+                                  <div className="flex items-center gap-2">
+                                     <span className="text-[9px] font-bold text-slate-400 tracking-wider">LIC: {driver.licencia}</span>
+                                     {empresa && (
+                                       <>
+                                         <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
+                                         <span className="text-[9px] font-black uppercase tracking-wider" style={{ color: empresa.color }}>{empresa.nombre}</span>
+                                       </>
+                                     )}
+                                  </div>
+                               </div>
+                               <ChevronRight size={14} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </section>
+                </div>
               </div>
             )}
 

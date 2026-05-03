@@ -6,6 +6,7 @@ def create_conductor(db: Session, data: ConductorCreate):
     conductor = Conductor(
         nombre=data.nombre,
         licencia=data.licencia,
+        empresa_id=data.empresa_id,
         activo=data.activo
     )
     db.add(conductor)
