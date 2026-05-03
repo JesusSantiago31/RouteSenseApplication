@@ -7,14 +7,9 @@ import os
 
 app = FastAPI(title="RouteSense Conductores API")
 
-# Movemos la creación de tablas para que no bloquee el arranque si falla la DB
+# Intentamos crear las tablas al iniciar
 @app.on_event("startup")
 def startup_event():
-    db_url = os.getenv("DATABASE_URL")
-    if db_url:
-        print(f"DEBUG: DATABASE_URL encontrada. Comienza con: {db_url[:20]}...")
-    else:
-        print("DEBUG ERROR: DATABASE_URL NO ENCONTRADA")
     try:
         Base.metadata.create_all(bind=engine)
     except Exception as e:
