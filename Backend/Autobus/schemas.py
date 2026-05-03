@@ -16,16 +16,16 @@ class EmpresaResponse(EmpresaBase):
     empresa_id: UUID
     model_config = ConfigDict(from_attributes=True)
 
-class AutobusBase(BaseModel):
+class BusBase(BaseModel):
     placa: str
     capacidad: int
     empresa_id: UUID | None = None
     conductor_id: UUID | None = None
     estado: bool = True
 
-class AutobusCreate(AutobusBase):
+class BusCreate(BusBase):
     pass
 
-class AutobusResponse(AutobusBase):
+class BusResponse(BusBase):
     bus_id: UUID
     model_config = ConfigDict(from_attributes=True)
