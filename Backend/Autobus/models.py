@@ -25,5 +25,6 @@ class Autobus(Base):
     capacidad = Column(Integer, nullable=False)
     estado = Column(Boolean, nullable=False, default=True)
     color = Column(String(7), nullable=True)
+    ruta_id = Column(UUID(as_uuid=True), nullable=True)
 
     empresa_rel = relationship("Empresa")

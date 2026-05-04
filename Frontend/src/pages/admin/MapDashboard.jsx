@@ -19,7 +19,7 @@ export default function MapDashboard() {
   const [allRouteDetails, setAllRouteDetails] = useState({});
   
   // Estados de Filtros
-  const [filters, setFilters] = useState({ search: '', color: '', municipio: '', estado: '' });
+  const [filters, setFilters] = useState({ search: '', color: [], municipio: [], estado: [] });
 
   // Estados UI
   const [showStopForm, setShowStopForm] = useState(false);
@@ -81,7 +81,7 @@ export default function MapDashboard() {
   const filteredRutas = useMemo(() => {
     return rutas.filter(r => {
       const matchSearch = r.nombre.toLowerCase().includes(filters.search.toLowerCase());
-      const matchColor = !filters.color || r.color === filters.color;
+      const matchColor = filters.color.length === 0 || filters.color.includes(r.color);
       return matchSearch && matchColor;
     });
   }, [rutas, filters]);
@@ -93,9 +93,9 @@ export default function MapDashboard() {
       const m = lugar.municipio || p.municipio || "";
       const e = lugar.estado || p.estado || "";
       const matchSearch = p.nombre.toLowerCase().includes(searchLower) || m.toLowerCase().includes(searchLower) || e.toLowerCase().includes(searchLower);
-      const matchColor = !filters.color || p.color === filters.color;
-      const matchMunicipio = !filters.municipio || m === filters.municipio;
-      const matchEstado = !filters.estado || e === filters.estado;
+      const matchColor = filters.color.length === 0 || filters.color.includes(p.color);
+      const matchMunicipio = filters.municipio.length === 0 || filters.municipio.includes(m);
+      const matchEstado = filters.estado.length === 0 || filters.estado.includes(e);
       return matchSearch && matchColor && matchMunicipio && matchEstado;
     });
   }, [paradas, filters]);
@@ -121,7 +121,21 @@ export default function MapDashboard() {
     setVisibleStops(prev => prev.length === filteredParadas.length ? [] : filteredParadas.map(p => p.parada_id));
   };
 
+  const handleStopClick = (stopId) => {
+    if (showRouteForm && editingRoute) {
+      const current = editingRoute.paradas_ids || [];
+      if (current.includes(stopId)) {
+        setEditingRoute({ ...editingRoute, paradas_ids: current.filter(id => id !== stopId) });
+      } else {
+        setEditingRoute({ ...editingRoute, paradas_ids: [...current, stopId] });
+      }
+    } else {
+      toggleStopVisibility(stopId);
+    }
+  };
+
   const handleMapClick = async (e) => {
+    if (showRouteForm) return;
     const latlng = { lat: e.latLng.lat(), lng: e.latLng.lng() };
     setClickedPos(latlng);
     setNewStop(prev => ({ ...prev, latitud: latlng.lat.toFixed(6), longitud: latlng.lng.toFixed(6) }));
@@ -152,13 +166,36 @@ export default function MapDashboard() {
     }
   };
 
-  const onEditRoute = (ruta) => { setEditingRoute(ruta); setIsCreatingRoute(false); setShowRouteForm(true); };
+  const onEditRoute = (ruta) => { 
+    // In a real scenario we'd fetch the route details and populate paradas_ids and buses_ids
+    setEditingRoute({ ...ruta, paradas_ids: ruta.paradas_ids || [], buses_ids: ruta.buses_ids || [] }); 
+    setIsCreatingRoute(false); 
+    setShowRouteForm(true); 
+  };
   const onSaveRoute = async (e) => {
     e.preventDefault();
     try {
-      if (isCreatingRoute) await routeService.createRoute(editingRoute);
-      else await routeService.updateRoute(editingRoute.ruta_id, editingRoute);
-      setShowRouteForm(false); fetchData();
+      let savedRoute;
+      if (isCreatingRoute) {
+         savedRoute = await routeService.createRoute(editingRoute);
+      } else {
+         savedRoute = await routeService.updateRoute(editingRoute.ruta_id, editingRoute);
+      }
+      
+      // Asignar los autobuses a la ruta
+      if (editingRoute.buses_ids) {
+        const routeId = savedRoute?.ruta_id || editingRoute.ruta_id;
+        await Promise.all(editingRoute.buses_ids.map(busId => {
+          const busToUpdate = buses.find(b => b.bus_id === busId);
+          if (busToUpdate) {
+            return fleetService.updateBus(busId, { ...busToUpdate, ruta_id: routeId });
+          }
+          return Promise.resolve();
+        }));
+      }
+
+      setShowRouteForm(false); 
+      fetchData();
     } catch (err) { alert(err.message); }
   };
 
@@ -168,7 +205,7 @@ export default function MapDashboard() {
   };
 
   const onNewRoute = () => {
-    setEditingRoute({ nombre: '', color: '#3498db', distancia_km: 0, activa: true });
+    setEditingRoute({ nombre: '', color: '#3498db', distancia_km: 0, activa: true, paradas_ids: [], buses_ids: [] });
     setIsCreatingRoute(true);
     setShowRouteForm(true);
   };
@@ -219,14 +256,27 @@ export default function MapDashboard() {
         rutas={filteredRutas} paradas={filteredParadas} visibleRoutes={visibleRoutes} visibleStops={visibleStops} toggleRouteVisibility={toggleRouteVisibility} toggleStopVisibility={toggleStopVisibility} toggleAllStops={toggleAllStops} onNewRoute={onNewRoute} onNewStop={onNewStop} onDeleteStop={handleDeleteStop}
         filters={filters} setFilters={setFilters} filterOptions={filterOptions}
         showStopForm={showStopForm} setShowStopForm={setShowStopForm} handleCreateStop={handleCreateStop} newStop={newStop} setNewStop={setNewStop} isGeocoding={isGeocoding}
-        showRouteForm={showRouteForm} setShowRouteForm={setShowRouteForm} onEditRoute={onEditRoute} editingRoute={editingRoute} setRouteData={setEditingRoute} onSaveRoute={onSaveRoute} onDeleteRoute={() => {}} isCreatingRoute={isCreatingRoute}
+        showRouteForm={showRouteForm} setShowRouteForm={setShowRouteForm} onEditRoute={onEditRoute} editingRoute={editingRoute} setEditingRoute={setEditingRoute} onSaveRoute={onSaveRoute} onDeleteRoute={() => {}} isCreatingRoute={isCreatingRoute}
         companies={companies} showCompanyForm={showCompanyForm} setShowCompanyForm={setShowCompanyForm} onEditCompany={onEditRoute} editingCompany={editingCompany} setEditingCompany={setEditingCompany} onSaveCompany={async (e) => { e.preventDefault(); try { if (editingCompany?.empresa_id) await companyService.updateCompany(editingCompany.empresa_id, editingCompany); else await companyService.createCompany(editingCompany); setShowCompanyForm(false); fetchData(); } catch(err) { alert(err.message); } }} onDeleteCompany={async (id) => { if(confirm("¿Eliminar?")) { await companyService.deleteCompany(id); fetchData(); } }}
         buses={buses} showBusForm={showBusForm} setShowBusForm={setShowBusForm} editingBus={editingBus} setEditingBus={setEditingBus} onSaveBus={onSaveBus} onDeleteBus={onDeleteBus}
         drivers={drivers} showDriverForm={showDriverForm} setShowDriverForm={setShowDriverForm} editingDriver={editingDriver} setEditingDriver={setEditingDriver} onSaveDriver={onSaveDriver} onDeleteDriver={onDeleteDriver}
       />
       <main className="flex-1 relative flex flex-col min-w-0">
         <div className="flex-1 relative w-full h-full">
-           <MapContainer isLoaded={isLoaded} clickedPos={clickedPos} onMapClick={handleMapClick} visibleRoutes={visibleRoutes} allRouteDetails={allRouteDetails} paradas={filteredParadas} visibleStops={visibleStops} newStopColor={newStop.color} />
+           <MapContainer 
+              isLoaded={isLoaded} 
+              clickedPos={clickedPos} 
+              onMapClick={handleMapClick} 
+              visibleRoutes={visibleRoutes} 
+              allRouteDetails={allRouteDetails} 
+              paradas={filteredParadas} 
+              visibleStops={visibleStops} 
+              newStopColor={newStop.color} 
+              onStopClick={handleStopClick}
+              editingRoute={editingRoute}
+              setEditingRoute={setEditingRoute}
+              showRouteForm={showRouteForm}
+           />
         </div>
       </main>
     </div>

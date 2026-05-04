@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, Tag, Trash2, Save, Sparkles, Activity } from 'lucide-react';
 
-export default function RouteForm({ show, onClose, onSubmit, onDelete, routeData, setRouteData, isCreating }) {
+export default function RouteForm({ show, onClose, onSubmit, onDelete, routeData, setRouteData, isCreating, paradas = [], buses = [] }) {
   if (!routeData) return null;
 
   return (
@@ -47,6 +47,59 @@ export default function RouteForm({ show, onClose, onSubmit, onDelete, routeData
                    />
                 </div>
              </div>
+          </div>
+
+          {/* Selector de Paradas */}
+          <div>
+            <label className="text-[10px] font-black text-primary mb-2 block tracking-[0.2em] uppercase opacity-80">Seleccionar Paradas (Orden de Ruta)</label>
+            <div className="h-32 overflow-y-auto bg-slate-50/50 border border-slate-100 rounded-[20px] p-3 space-y-1 custom-scrollbar">
+               {paradas.map(p => {
+                  const index = (routeData.paradas_ids || []).indexOf(p.parada_id);
+                  const isSelected = index !== -1;
+                  return (
+                     <div 
+                        key={p.parada_id} 
+                        onClick={() => {
+                           const current = routeData.paradas_ids || [];
+                           if (isSelected) setRouteData({...routeData, paradas_ids: current.filter(id => id !== p.parada_id)});
+                           else setRouteData({...routeData, paradas_ids: [...current, p.parada_id]});
+                        }}
+                        className={`p-2 rounded-xl text-xs font-bold cursor-pointer transition-all flex items-center justify-between ${isSelected ? 'bg-primary/10 text-primary border border-primary/20' : 'hover:bg-slate-100 text-slate-600 border border-transparent'}`}
+                     >
+                        <span>{p.nombre}</span>
+                        {isSelected && <span className="bg-primary text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px]">{index + 1}</span>}
+                     </div>
+                  );
+               })}
+               {paradas.length === 0 && <p className="text-xs text-slate-400 text-center py-4">No hay paradas registradas</p>}
+            </div>
+          </div>
+
+          {/* Selector de Autobuses */}
+          <div>
+            <label className="text-[10px] font-black text-primary mb-2 block tracking-[0.2em] uppercase opacity-80">Asignar Unidades (Autobuses)</label>
+            <div className="h-24 overflow-y-auto bg-slate-50/50 border border-slate-100 rounded-[20px] p-3 space-y-1 custom-scrollbar">
+               {buses.map(b => {
+                  const isSelected = (routeData.buses_ids || []).includes(b.bus_id);
+                  return (
+                     <div 
+                        key={b.bus_id} 
+                        onClick={() => {
+                           const current = routeData.buses_ids || [];
+                           if (isSelected) setRouteData({...routeData, buses_ids: current.filter(id => id !== b.bus_id)});
+                           else setRouteData({...routeData, buses_ids: [...current, b.bus_id]});
+                        }}
+                        className={`p-2 rounded-xl text-xs font-bold cursor-pointer transition-all flex items-center justify-between ${isSelected ? 'bg-secondary/10 text-secondary border border-secondary/20' : 'hover:bg-slate-100 text-slate-600 border border-transparent'}`}
+                     >
+                        <div className="flex gap-2 items-center">
+                           <span>{b.placa}</span>
+                           <span className="text-[10px] opacity-70">({b.capacidad} PAX)</span>
+                        </div>
+                     </div>
+                  );
+               })}
+               {buses.length === 0 && <p className="text-xs text-slate-400 text-center py-4">No hay autobuses disponibles</p>}
+            </div>
           </div>
 
           <div className="flex gap-4 pt-4">

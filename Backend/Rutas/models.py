@@ -25,12 +25,14 @@ class Ruta(Base):
     )
 
     ruta_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    nombre = Column(String(100), nullable=False, default="Nueva Ruta")
     origen_id = Column(UUID(as_uuid=True), ForeignKey("lugares.lugar_id"), nullable=False)
     destino_id = Column(UUID(as_uuid=True), ForeignKey("lugares.lugar_id"), nullable=False)
     distancia_km = Column(Numeric(8,2), nullable=False)
     activa = Column(Boolean, nullable=False, default=True)
     numero_paradas = Column(Integer, nullable=False, default=0)
     color = Column(String(7), default="#3498db")
+    google_polyline = Column(String, nullable=True)
 
 class RutaParada(Base):
     __tablename__ = "rutas_paradas"

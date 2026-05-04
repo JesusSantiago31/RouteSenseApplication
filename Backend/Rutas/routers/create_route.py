@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 from database import SessionLocal
-from schemas import RutaCreate, RutaResponse
+from schemas import RutaFullCreate, RutaResponse
 from services import route_service
 from utils.dependencies import get_current_admin
 from utils.limiter import limiter
@@ -17,5 +17,9 @@ def get_db():
 
 @router.post("/routes/", response_model=RutaResponse)
 @limiter.limit("10/minute")
-def crear_ruta(request: Request, data: RutaCreate, db: Session = Depends(get_db), admin = Depends(get_current_admin)):
-    return route_service.create_route(db, data)
+def crear_ruta(request: Request, data: RutaFullCreate, db: Session = Depends(get_db), admin = Depends(get_current_admin)):
+    try:
+        return route_service.create_full_route(db, data)
+    except ValueError as e:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail=str(e))

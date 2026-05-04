@@ -31,6 +31,7 @@ export default function BusForm({ show, onClose, onSubmit, onDelete, busData, co
   const handleSubmit = (e) => {
     e.preventDefault();
     const payload = { ...formData };
+    if (busData?.bus_id) payload.bus_id = busData.bus_id;
     if (!payload.empresa_id) payload.empresa_id = null;
     if (!payload.conductor_id) payload.conductor_id = null;
     onSubmit(payload);
@@ -131,13 +132,30 @@ export default function BusForm({ show, onClose, onSubmit, onDelete, busData, co
               </label>
               <div className="relative group">
                  <UserCheck size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors z-10" />
-                 <select
+               <select
                   className="w-full pl-12 pr-4 py-4 bg-slate-50/50 border border-slate-100 rounded-[20px] font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:bg-white transition-all appearance-none shadow-sm cursor-pointer"
                   value={formData.conductor_id || ''}
-                  onChange={e => setFormData({...formData, conductor_id: e.target.value})}
+                  onChange={e => {
+                    const selectedDriverId = e.target.value;
+                    const selectedDriver = drivers.find(d => d.conductor_id === selectedDriverId);
+                    
+                    let newFormData = { ...formData, conductor_id: selectedDriverId };
+                    
+                    if (selectedDriver && selectedDriver.empresa_id) {
+                      const selectedCompany = companies.find(c => c.empresa_id === selectedDriver.empresa_id);
+                      if (selectedCompany) {
+                        newFormData.empresa_id = selectedCompany.empresa_id;
+                        newFormData.empresa = selectedCompany.nombre;
+                        newFormData.color = selectedCompany.color || '#3498db';
+                      }
+                    }
+                    setFormData(newFormData);
+                  }}
                  >
                     <option value="">Sin chofer asignado</option>
-                    {Array.isArray(drivers) && drivers.filter(d => d.activo).map(d => (
+                    {Array.isArray(drivers) && drivers
+                      .filter(d => d.activo && (!formData.empresa_id || d.empresa_id === formData.empresa_id))
+                      .map(d => (
                       <option key={d.conductor_id} value={d.conductor_id}>{d.nombre}</option>
                     ))}
                  </select>
@@ -147,13 +165,14 @@ export default function BusForm({ show, onClose, onSubmit, onDelete, busData, co
               <label className="text-[10px] font-black text-primary mb-2.5 block tracking-[0.2em] uppercase opacity-80">
                 Color de Unidad
               </label>
-              <div className="relative group">
+               <div className="relative group opacity-80 pointer-events-none">
                  <div className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full shadow-sm border-2 border-white" style={{ backgroundColor: formData.color || '#3498db' }} />
                  <input 
                   type="color"
-                  className="w-full h-[54px] pl-12 pr-4 py-2 bg-slate-50/50 border border-slate-100 rounded-[20px] focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all cursor-pointer shadow-sm" 
+                  className="w-full h-[54px] pl-12 pr-4 py-2 bg-slate-50/50 border border-slate-100 rounded-[20px] focus:outline-none cursor-not-allowed shadow-sm" 
                   value={formData.color || '#3498db'} 
-                  onChange={e => setFormData({...formData, color: e.target.value})} 
+                  readOnly
+                  disabled
                  />
               </div>
             </div>

@@ -10,6 +10,42 @@ def create_route(db: Session, data: RutaCreate):
     db.refresh(ruta)
     return ruta
 
+from schemas import RutaFullCreate
+
+def create_full_route(db: Session, data: RutaFullCreate):
+    origen_id = None
+    destino_id = None
+    
+    if len(data.paradas_ids) >= 2:
+        o_parada = db.query(Parada).filter(Parada.parada_id == data.paradas_ids[0]).first()
+        d_parada = db.query(Parada).filter(Parada.parada_id == data.paradas_ids[-1]).first()
+        if o_parada: origen_id = o_parada.lugar_id
+        if d_parada: destino_id = d_parada.lugar_id
+
+    if not origen_id or not destino_id:
+        raise ValueError("No se pudieron determinar el origen y destino desde las paradas")
+
+    ruta = Ruta(
+        nombre=data.nombre,
+        color=data.color,
+        activa=data.activa,
+        distancia_km=data.distancia_km,
+        numero_paradas=len(data.paradas_ids),
+        origen_id=origen_id,
+        destino_id=destino_id,
+        google_polyline=data.google_polyline
+    )
+    db.add(ruta)
+    db.commit()
+    db.refresh(ruta)
+
+    for idx, parada_id in enumerate(data.paradas_ids):
+        rp = RutaParada(ruta_id=ruta.ruta_id, parada_id=parada_id, orden=idx+1, distancia_desde_inicio=0)
+        db.add(rp)
+    
+    db.commit()
+    return ruta
+
 def get_routes(db: Session):
     return db.query(Ruta).all()
 

@@ -10,6 +10,7 @@ class BusBase(BaseModel):
     conductor_id: Optional[UUID] = None
     estado: bool = True
     color: Optional[str] = None
+    ruta_id: Optional[UUID] = None
 
 class BusCreate(BusBase):
     pass
