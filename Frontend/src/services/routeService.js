@@ -7,6 +7,12 @@ const apiRutas = axios.create({
   },
 });
 
+apiRutas.interceptors.request.use((config) => {
+  const token = localStorage.getItem('routesense_admin_token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
 export const routeService = {
   getRoutes: async () => {
     try {

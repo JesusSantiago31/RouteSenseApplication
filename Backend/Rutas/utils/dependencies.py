@@ -2,6 +2,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from database import SessionLocal
 import models
 import os
@@ -33,7 +34,7 @@ def get_current_admin(token: str = Depends(oauth2_scheme), db: Session = Depends
     except JWTError:
         raise credentials_exception
         
-    admin = db.query(models.Administrador).filter(models.Administrador.user_id == user_id).first()
+    admin = db.execute(text("SELECT * FROM administradores WHERE user_id = :uid"), {"uid": user_id}).fetchone()
     if not admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
