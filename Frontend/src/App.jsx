@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LoginAdmin from './pages/auth/LoginAdmin';
+import LoginConductor from './pages/auth/LoginConductor';
 import Dashboard from './pages/admin/Dashboard';
 import UserHome from './pages/user/Home';
 import DriverTracking from './pages/driver/DriverTracking';
@@ -19,6 +20,7 @@ export default function App() {
 
         {/* Rutas Públicas/Auth */}
         <Route path="/login" element={<LoginAdmin />} />
+        <Route path="/login/driver" element={<LoginConductor />} />
 
         {/* Rutas de Administrador Protegidas */}
         <Route element={<ProtectedRoute isAllowed={isAdmin} redirectTo="/login" />}>

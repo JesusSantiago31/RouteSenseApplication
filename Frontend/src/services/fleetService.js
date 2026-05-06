@@ -85,5 +85,18 @@ export const fleetService = {
     } catch (error) {
       throw new Error(error.response?.data?.detail || error.message);
     }
+  },
+
+  loginDriver: async (matricula, nombre, password) => {
+    try {
+      const response = await apiConductores.post('/conductores/login', {
+        licencia: matricula,
+        nombre_completo: nombre,
+        password: password
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.detail || error.message);
+    }
   }
 };

@@ -6,6 +6,7 @@ export default function DriverForm({ show, onClose, onSubmit, onDelete, driverDa
     nombre: '',
     licencia: '',
     empresa_id: '',
+    password: '',
     activo: true
   });
 
@@ -15,10 +16,11 @@ export default function DriverForm({ show, onClose, onSubmit, onDelete, driverDa
         nombre: driverData.nombre || '',
         licencia: driverData.licencia || '',
         empresa_id: driverData.empresa_id || '',
-        activo: driverData.activo !== undefined ? driverData.activo : true
+        activo: driverData.activo !== undefined ? driverData.activo : true,
+        password: ''
       });
     } else {
-      setFormData({ nombre: '', licencia: '', empresa_id: '', activo: true });
+      setFormData({ nombre: '', licencia: '', empresa_id: '', password: '', activo: true });
     }
   }, [driverData, show]);
 
@@ -106,6 +108,24 @@ export default function DriverForm({ show, onClose, onSubmit, onDelete, driverDa
                     </option>
                   ))}
                </select>
+            </div>
+          </div>
+
+          {/* CONTRASEÑA */}
+          <div>
+            <label className="text-[10px] font-black text-primary mb-2.5 block tracking-[0.2em] uppercase opacity-80">
+              Contraseña de Acceso
+            </label>
+            <div className="relative group">
+               <ShieldCheck size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" />
+               <input 
+                type="password"
+                className="w-full pl-12 pr-4 py-4 bg-slate-50/50 border border-slate-100 rounded-[20px] font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:bg-white transition-all placeholder:text-slate-300 shadow-sm" 
+                value={formData.password || ''} 
+                onChange={e => setFormData({...formData, password: e.target.value})} 
+                required={!driverData?.conductor_id}
+                placeholder={driverData?.conductor_id ? "Dejar en blanco para no cambiar" : "Mínimo 6 caracteres"} 
+               />
             </div>
           </div>
 

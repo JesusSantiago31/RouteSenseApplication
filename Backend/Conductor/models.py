@@ -29,6 +29,7 @@ class Conductor(Base):
     conductor_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     nombre = Column(String(100), nullable=False)
     licencia = Column(String(50), unique=True, nullable=False)
+    password_hash = Column(String, nullable=False) # <--- Nuevo campo
     activo = Column(Boolean, default=True)
 
 

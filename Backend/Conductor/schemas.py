@@ -24,6 +24,7 @@ class AdminUpdateRole(BaseModel):
 class ConductorCreate(BaseModel):
     nombre: str
     licencia: str
+    password: str
     activo: bool = True
 
 class ConductorResponse(BaseModel):
