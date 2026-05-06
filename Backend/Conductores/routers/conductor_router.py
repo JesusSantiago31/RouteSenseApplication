@@ -24,11 +24,10 @@ def get_db():
 
 @router.post("/", response_model=ConductorResponse)
 def crear_conductor(data: ConductorCreate, db: Session = Depends(get_db)):
-    # Verificar si la licencia ya existe para evitar error 500
-    existente = db.query(models.Conductor).filter(models.Conductor.licencia == data.licencia).first()
-    if existente:
-        raise HTTPException(status_code=400, detail="La licencia ya está registrada")
-    return conductor_service.create_conductor(db, data)
+    try:
+        return conductor_service.create_conductor(db, data)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/", response_model=List[ConductorResponse])
 def listar_conductores(db: Session = Depends(get_db)):
@@ -43,19 +42,13 @@ def obtener_conductor(conductor_id: str, db: Session = Depends(get_db)):
 
 @router.put("/{conductor_id}", response_model=ConductorResponse)
 def actualizar_conductor(conductor_id: str, data: ConductorUpdate, db: Session = Depends(get_db)):
-    # Si cambia la licencia, verificar unicidad
-    if data.licencia:
-        existente = db.query(models.Conductor).filter(
-            models.Conductor.licencia == data.licencia,
-            models.Conductor.conductor_id != conductor_id
-        ).first()
-        if existente:
-            raise HTTPException(status_code=400, detail="La nueva licencia ya está registrada")
-            
-    conductor = conductor_service.update_conductor(db, conductor_id, data)
-    if not conductor:
-        raise HTTPException(status_code=404, detail="Conductor no encontrado")
-    return conductor
+    try:
+        conductor = conductor_service.update_conductor(db, conductor_id, data)
+        if not conductor:
+            raise HTTPException(status_code=404, detail="Conductor no encontrado")
+        return conductor
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.delete("/{conductor_id}")
 def eliminar_conductor(conductor_id: str, db: Session = Depends(get_db)):

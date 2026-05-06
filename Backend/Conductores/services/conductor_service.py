@@ -1,20 +1,25 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from models import Conductor
 from schemas import ConductorCreate, ConductorUpdate
 from utils.security import hash_password
 
 def create_conductor(db: Session, data: ConductorCreate):
-    conductor = Conductor(
-        nombre=data.nombre,
-        licencia=data.licencia,
-        empresa_id=data.empresa_id,
-        password_hash=hash_password(data.password),
-        activo=data.activo
-    )
-    db.add(conductor)
-    db.commit()
-    db.refresh(conductor)
-    return conductor
+    try:
+        conductor = Conductor(
+            nombre=data.nombre,
+            licencia=data.licencia,
+            empresa_id=data.empresa_id,
+            password_hash=hash_password(data.password),
+            activo=data.activo
+        )
+        db.add(conductor)
+        db.commit()
+        db.refresh(conductor)
+        return conductor
+    except IntegrityError:
+        db.rollback()
+        raise ValueError("La licencia ya está registrada en el sistema")
 
 def get_conductores(db: Session):
     return db.query(Conductor).all()
@@ -34,9 +39,13 @@ def update_conductor(db: Session, conductor_id: str, data: ConductorUpdate):
     for key, value in update_data.items():
         setattr(conductor, key, value)
         
-    db.commit()
-    db.refresh(conductor)
-    return conductor
+    try:
+        db.commit()
+        db.refresh(conductor)
+        return conductor
+    except IntegrityError:
+        db.rollback()
+        raise ValueError("No se puede actualizar: La nueva licencia ya pertenece a otro conductor")
 
 def delete_conductor(db: Session, conductor_id: str):
     conductor = get_conductor_by_id(db, conductor_id)
