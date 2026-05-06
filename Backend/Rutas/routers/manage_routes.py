@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Request, HTTPException
 from sqlalchemy.orm import Session
 from database import SessionLocal
-from schemas import RutaCreate, RutaResponse
+from schemas import RutaCreate, RutaResponse, RutaFullCreate
 from services import route_service
 from utils.dependencies import get_current_admin
 from utils.limiter import limiter
@@ -17,7 +17,7 @@ def get_db():
 
 @router.put("/routes/{ruta_id}", response_model=RutaResponse)
 @limiter.limit("5/minute")
-def actualizar_ruta(request: Request, ruta_id: str, data: RutaCreate, db: Session = Depends(get_db), admin = Depends(get_current_admin)):
+def actualizar_ruta(request: Request, ruta_id: str, data: RutaFullCreate, db: Session = Depends(get_db), admin = Depends(get_current_admin)):
     ruta = route_service.update_route(db, ruta_id, data)
     if not ruta:
         raise HTTPException(status_code=404, detail="Ruta no encontrada")

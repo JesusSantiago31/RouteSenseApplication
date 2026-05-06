@@ -109,7 +109,7 @@ export default function MapContainer({
                 {paradas.filter(p => showRouteForm || visibleStops.includes(p.parada_id)).map(p => {
                   const indexInRoute = editingRoute?.paradas_ids?.indexOf(p.parada_id);
                   const isSelectedForRoute = showRouteForm && indexInRoute !== undefined && indexInRoute !== -1;
-                  const stopColor = isSelectedForRoute ? (editingRoute?.color || '#f1c40f') : (p.color || '#3498db');
+                  const stopColor = p.color || '#3498db';
                   const orderNumber = isSelectedForRoute ? `${indexInRoute + 1}. ` : '';
                   
                   return (

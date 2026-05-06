@@ -104,12 +104,40 @@ def get_route_with_stops(db: Session, ruta_id: str):
         "google_polyline": polyline
     }
 
-def update_route(db: Session, ruta_id: str, data: RutaCreate):
+def update_route(db: Session, ruta_id: str, data: RutaFullCreate):
     ruta = db.query(Ruta).filter(Ruta.ruta_id == ruta_id).first()
     if not ruta:
         return None
-    for key, value in data.model_dump().items():
-        setattr(ruta, key, value)
+    
+    # Actualizar campos básicos
+    ruta.nombre = data.nombre
+    ruta.color = data.color
+    ruta.activa = data.activa
+    ruta.distancia_km = data.distancia_km
+    ruta.google_polyline = data.google_polyline
+    ruta.numero_paradas = len(data.paradas_ids)
+
+    # Determinar origen y destino desde las nuevas paradas
+    if len(data.paradas_ids) >= 2:
+        o_parada = db.query(Parada).filter(Parada.parada_id == data.paradas_ids[0]).first()
+        d_parada = db.query(Parada).filter(Parada.parada_id == data.paradas_ids[-1]).first()
+        if o_parada: ruta.origen_id = o_parada.lugar_id
+        if d_parada: ruta.destino_id = d_parada.lugar_id
+
+    # Sincronizar paradas en transporte.rutas_paradas
+    # Primero eliminamos las asociaciones actuales
+    db.query(RutaParada).filter(RutaParada.ruta_id == ruta_id).delete()
+    
+    # Insertamos la nueva secuencia de paradas
+    for idx, parada_id in enumerate(data.paradas_ids):
+        rp = RutaParada(
+            ruta_id=ruta.ruta_id, 
+            parada_id=parada_id, 
+            orden=idx+1, 
+            distancia_desde_inicio=0
+        )
+        db.add(rp)
+
     db.commit()
     db.refresh(ruta)
     return ruta

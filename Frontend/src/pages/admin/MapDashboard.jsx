@@ -166,11 +166,36 @@ export default function MapDashboard() {
     }
   };
 
-  const onEditRoute = (ruta) => { 
-    // In a real scenario we'd fetch the route details and populate paradas_ids and buses_ids
-    setEditingRoute({ ...ruta, paradas_ids: ruta.paradas_ids || [], buses_ids: ruta.buses_ids || [] }); 
-    setIsCreatingRoute(false); 
-    setShowRouteForm(true); 
+  const onEditRoute = async (ruta) => { 
+    try {
+      const detalles = await routeService.getRouteDetails(ruta.ruta_id);
+      const busesAsignados = buses
+        .filter(b => b.ruta_id === ruta.ruta_id)
+        .map(b => b.bus_id);
+
+      setEditingRoute({ 
+        ...ruta, 
+        paradas_ids: detalles ? detalles.paradas.map(p => p.parada_id) : [], 
+        buses_ids: busesAsignados 
+      }); 
+      setIsCreatingRoute(false); 
+      setShowRouteForm(true); 
+    } catch (err) {
+      console.error(err);
+      alert("Error al cargar detalles de la ruta");
+    }
+  };
+
+  const onDeleteRoute = async (id) => {
+    if (window.confirm("¿Eliminar esta ruta por completo?")) {
+      try {
+        await routeService.deleteRoute(id);
+        setShowRouteForm(false);
+        fetchData();
+      } catch (err) {
+        alert("Error al eliminar: " + err.message);
+      }
+    }
   };
   const onSaveRoute = async (e) => {
     e.preventDefault();
@@ -182,17 +207,33 @@ export default function MapDashboard() {
          savedRoute = await routeService.updateRoute(editingRoute.ruta_id, editingRoute);
       }
       
-      // Asignar los autobuses a la ruta
-      if (editingRoute.buses_ids) {
-        const routeId = savedRoute?.ruta_id || editingRoute.ruta_id;
-        await Promise.all(editingRoute.buses_ids.map(busId => {
-          const busToUpdate = buses.find(b => b.bus_id === busId);
-          if (busToUpdate) {
-            return fleetService.updateBus(busId, { ...busToUpdate, ruta_id: routeId });
-          }
-          return Promise.resolve();
-        }));
-      }
+      // Gestión de asignación de autobuses
+      const routeId = savedRoute?.ruta_id || editingRoute.ruta_id;
+      
+      // 1. Autobuses que deben tener esta ruta
+      const selectedBusesIds = editingRoute.buses_ids || [];
+      
+      // 2. Procesamos TODOS los autobuses para sincronizar
+      await Promise.all(buses.map(bus => {
+        const isSelected = selectedBusesIds.includes(bus.bus_id);
+        const isCurrentlyAssigned = bus.ruta_id === routeId;
+
+        if (isSelected && !isCurrentlyAssigned) {
+          // Agregar a la ruta
+          return fleetService.updateBus(bus.bus_id, { ...bus, ruta_id: routeId });
+        } else if (!isSelected && isCurrentlyAssigned) {
+          // Quitar de la ruta
+          return fleetService.updateBus(bus.bus_id, { ...bus, ruta_id: null });
+        }
+        return Promise.resolve();
+      }));
+
+      // Limpiar caché de detalles para forzar recarga visual (colores y trayecto)
+      setAllRouteDetails(prev => {
+        const newState = { ...prev };
+        delete newState[routeId];
+        return newState;
+      });
 
       setShowRouteForm(false); 
       fetchData();
@@ -256,7 +297,7 @@ export default function MapDashboard() {
         rutas={filteredRutas} paradas={filteredParadas} visibleRoutes={visibleRoutes} visibleStops={visibleStops} toggleRouteVisibility={toggleRouteVisibility} toggleStopVisibility={toggleStopVisibility} toggleAllStops={toggleAllStops} onNewRoute={onNewRoute} onNewStop={onNewStop} onDeleteStop={handleDeleteStop}
         filters={filters} setFilters={setFilters} filterOptions={filterOptions}
         showStopForm={showStopForm} setShowStopForm={setShowStopForm} handleCreateStop={handleCreateStop} newStop={newStop} setNewStop={setNewStop} isGeocoding={isGeocoding}
-        showRouteForm={showRouteForm} setShowRouteForm={setShowRouteForm} onEditRoute={onEditRoute} editingRoute={editingRoute} setEditingRoute={setEditingRoute} onSaveRoute={onSaveRoute} onDeleteRoute={() => {}} isCreatingRoute={isCreatingRoute}
+        showRouteForm={showRouteForm} setShowRouteForm={setShowRouteForm} onEditRoute={onEditRoute} editingRoute={editingRoute} setEditingRoute={setEditingRoute} onSaveRoute={onSaveRoute} onDeleteRoute={onDeleteRoute} isCreatingRoute={isCreatingRoute}
         companies={companies} showCompanyForm={showCompanyForm} setShowCompanyForm={setShowCompanyForm} onEditCompany={onEditRoute} editingCompany={editingCompany} setEditingCompany={setEditingCompany} onSaveCompany={async (e) => { e.preventDefault(); try { if (editingCompany?.empresa_id) await companyService.updateCompany(editingCompany.empresa_id, editingCompany); else await companyService.createCompany(editingCompany); setShowCompanyForm(false); fetchData(); } catch(err) { alert(err.message); } }} onDeleteCompany={async (id) => { if(confirm("¿Eliminar?")) { await companyService.deleteCompany(id); fetchData(); } }}
         buses={buses} showBusForm={showBusForm} setShowBusForm={setShowBusForm} editingBus={editingBus} setEditingBus={setEditingBus} onSaveBus={onSaveBus} onDeleteBus={onDeleteBus}
         drivers={drivers} showDriverForm={showDriverForm} setShowDriverForm={setShowDriverForm} editingDriver={editingDriver} setEditingDriver={setEditingDriver} onSaveDriver={onSaveDriver} onDeleteDriver={onDeleteDriver}
