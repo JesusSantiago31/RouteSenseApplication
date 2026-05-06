@@ -16,6 +16,7 @@ class Parada(Base):
     parada_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     nombre = Column(String(70), nullable=False)
     lugar_id = Column(UUID(as_uuid=True), ForeignKey("lugares.lugar_id"), nullable=False)
+    color = Column(String(7), default="#3498db")
 
 class Ruta(Base):
     __tablename__ = "rutas"

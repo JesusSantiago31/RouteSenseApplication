@@ -126,7 +126,7 @@ export default function DriverTracking() {
       {/* Header Conductor */}
       <header className="absolute top-6 left-6 z-10 pointer-events-none">
         <div className="bg-white/95 backdrop-blur-md p-4 rounded-3xl shadow-2xl flex items-center gap-4 border border-white pointer-events-auto">
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg" style={{ backgroundColor: route?.color || '#005cc8' }}>
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg" style={{ backgroundColor: route?.ruta?.color || '#005cc8' }}>
              <UserIcon size={24} />
           </div>
           <div>
@@ -150,7 +150,7 @@ export default function DriverTracking() {
               <Polyline 
                 path={google.maps.geometry.encoding.decodePath(route.google_polyline)} 
                 options={{ 
-                  strokeColor: route.color || '#005cc8', 
+                  strokeColor: route?.ruta?.color || '#005cc8', 
                   strokeWeight: 8,
                   strokeOpacity: 0.8
                 }} 
@@ -164,7 +164,7 @@ export default function DriverTracking() {
                 label={{ text: (idx + 1).toString(), color: 'white', fontSize: '10px', fontWeight: 'bold' }}
                 icon={{
                   path: google.maps.SymbolPath.CIRCLE,
-                  fillColor: stop.color || route.color || '#3498db',
+                  fillColor: stop.color || route?.ruta?.color || '#3498db',
                   fillOpacity: 1,
                   strokeColor: '#FFFFFF',
                   strokeWeight: 2,
@@ -232,9 +232,9 @@ export default function DriverTracking() {
               </div>
               
               <div className="p-5 rounded-[30px] border border-slate-100 relative overflow-hidden bg-slate-50/50">
-                <div className="absolute top-0 left-0 w-2 h-full" style={{ backgroundColor: route?.color || '#005cc8' }}></div>
+                <div className="absolute top-0 left-0 w-2 h-full" style={{ backgroundColor: route?.ruta?.color || '#005cc8' }}></div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-2">Servicio Activo</p>
-                <h4 className="font-black text-slate-800 text-base truncate ml-2">{route?.nombre || 'Buscando Ruta Asignada...'}</h4>
+                <h4 className="font-black text-slate-800 text-base truncate ml-2">{route?.ruta?.nombre || 'Buscando Ruta Asignada...'}</h4>
               </div>
             </div>
 
@@ -273,8 +273,8 @@ export default function DriverTracking() {
                         ? route.paradas[route.paradas.length - 1].nombre 
                         : 'Fin de Trayecto'}
                     </h4>
-                    <div className="mt-3 w-12 h-1 rounded-full bg-white/20 relative z-10" style={{ backgroundColor: route?.color + '50' }}>
-                       <div className="h-full rounded-full" style={{ width: '40%', backgroundColor: route?.color }}></div>
+                    <div className="mt-3 w-12 h-1 rounded-full bg-white/20 relative z-10" style={{ backgroundColor: (route?.ruta?.color || '#005cc8') + '50' }}>
+                       <div className="h-full rounded-full" style={{ width: '40%', backgroundColor: route?.ruta?.color || '#005cc8' }}></div>
                     </div>
                   </div>
                 </>
