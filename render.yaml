@@ -102,7 +102,6 @@ services:
     rootDir: ./Frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
-    region: ohio
     routes:
       - type: rewrite
         source: /*

@@ -53,6 +53,17 @@ export default function DriverTracking() {
       if (!driverData) return;
       setDriver(driverData);
       
+      // Intentar obtener ubicación inicial del dispositivo de inmediato
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (p) => {
+            const pos = { lat: p.coords.latitude, lng: p.coords.longitude };
+            setCurrentPos(pos);
+          },
+          (err) => console.log("Ubicación inicial denegada:", err)
+        );
+      }
+
       try {
         const busData = await fleetService.getBusByConductor(driverData.id);
         if (busData) {
