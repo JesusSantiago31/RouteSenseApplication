@@ -96,12 +96,12 @@ services:
       - fromGroup: routesense-shared
 
   # 8. Frontend (Aplicación Web)
-  - type: static
+  - type: web
     name: routesense-frontend
-    env: node
+    runtime: static
     rootDir: ./Frontend
     buildCommand: npm install && npm run build
-    publishPath: dist
+    staticPublishPath: dist
     region: ohio
     routes:
       - type: rewrite
