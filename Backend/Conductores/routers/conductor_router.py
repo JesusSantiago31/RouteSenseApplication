@@ -4,8 +4,16 @@ from database import SessionLocal
 from schemas import ConductorCreate, ConductorResponse
 from services import conductor_service
 from typing import List
+from utils.security import verify_password, create_access_token
+from pydantic import BaseModel
+import models
 
 router = APIRouter(prefix="/conductores", tags=["Conductores"])
+
+class ConductorLogin(BaseModel):
+    licencia: str
+    nombre_completo: str
+    password: str
 
 def get_db():
     db = SessionLocal()
@@ -28,3 +36,28 @@ def obtener_conductor(conductor_id: str, db: Session = Depends(get_db)):
     if not conductor:
         raise HTTPException(status_code=404, detail="Conductor no encontrado")
     return conductor
+
+@router.post("/login")
+def login_conductor(data: ConductorLogin, db: Session = Depends(get_db)):
+    conductor = db.query(models.Conductor).filter(models.Conductor.licencia == data.licencia).first()
+    
+    if not conductor:
+        raise HTTPException(status_code=401, detail="Matrícula no encontrada")
+    
+    if conductor.nombre.lower() != data.nombre_completo.lower():
+        raise HTTPException(status_code=401, detail="El nombre no coincide")
+        
+    if not verify_password(data.password, conductor.password_hash):
+        raise HTTPException(status_code=401, detail="Contraseña incorrecta")
+        
+    access_token = create_access_token(data={"sub": str(conductor.conductor_id), "role": "conductor"})
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "conductor": {
+            "id": conductor.conductor_id,
+            "nombre": conductor.nombre,
+            "licencia": conductor.licencia
+        }
+    }

@@ -1,12 +1,14 @@
 from sqlalchemy.orm import Session
 from models import Conductor
 from schemas import ConductorCreate
+from utils.security import hash_password
 
 def create_conductor(db: Session, data: ConductorCreate):
     conductor = Conductor(
         nombre=data.nombre,
         licencia=data.licencia,
         empresa_id=data.empresa_id,
+        password_hash=hash_password(data.password),
         activo=data.activo
     )
     db.add(conductor)

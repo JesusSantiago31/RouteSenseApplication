@@ -9,7 +9,7 @@ class ConductorBase(BaseModel):
     activo: bool = True
 
 class ConductorCreate(ConductorBase):
-    pass
+    password: str
 
 class ConductorResponse(ConductorBase):
     conductor_id: UUID

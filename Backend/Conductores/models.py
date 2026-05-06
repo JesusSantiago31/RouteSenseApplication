@@ -10,4 +10,5 @@ class Conductor(Base):
     empresa_id = Column(UUID(as_uuid=True), nullable=True)
     nombre = Column(String(100), nullable=False)
     licencia = Column(String(50), unique=True, nullable=False)
+    password_hash = Column(String, nullable=False)
     activo = Column(Boolean, default=True)
