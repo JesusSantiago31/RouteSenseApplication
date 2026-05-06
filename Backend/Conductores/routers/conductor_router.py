@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import SessionLocal
-from schemas import ConductorCreate, ConductorResponse
+from schemas import ConductorCreate, ConductorResponse, ConductorUpdate
 from services import conductor_service
 from typing import List
 from utils.security import verify_password, create_access_token
@@ -24,6 +24,10 @@ def get_db():
 
 @router.post("/", response_model=ConductorResponse)
 def crear_conductor(data: ConductorCreate, db: Session = Depends(get_db)):
+    # Verificar si la licencia ya existe para evitar error 500
+    existente = db.query(models.Conductor).filter(models.Conductor.licencia == data.licencia).first()
+    if existente:
+        raise HTTPException(status_code=400, detail="La licencia ya está registrada")
     return conductor_service.create_conductor(db, data)
 
 @router.get("/", response_model=List[ConductorResponse])
@@ -36,6 +40,29 @@ def obtener_conductor(conductor_id: str, db: Session = Depends(get_db)):
     if not conductor:
         raise HTTPException(status_code=404, detail="Conductor no encontrado")
     return conductor
+
+@router.put("/{conductor_id}", response_model=ConductorResponse)
+def actualizar_conductor(conductor_id: str, data: ConductorUpdate, db: Session = Depends(get_db)):
+    # Si cambia la licencia, verificar unicidad
+    if data.licencia:
+        existente = db.query(models.Conductor).filter(
+            models.Conductor.licencia == data.licencia,
+            models.Conductor.conductor_id != conductor_id
+        ).first()
+        if existente:
+            raise HTTPException(status_code=400, detail="La nueva licencia ya está registrada")
+            
+    conductor = conductor_service.update_conductor(db, conductor_id, data)
+    if not conductor:
+        raise HTTPException(status_code=404, detail="Conductor no encontrado")
+    return conductor
+
+@router.delete("/{conductor_id}")
+def eliminar_conductor(conductor_id: str, db: Session = Depends(get_db)):
+    conductor = conductor_service.delete_conductor(db, conductor_id)
+    if not conductor:
+        raise HTTPException(status_code=404, detail="Conductor no encontrado")
+    return {"detail": "Conductor eliminado correctamente"}
 
 @router.post("/login")
 def login_conductor(data: ConductorLogin, db: Session = Depends(get_db)):
