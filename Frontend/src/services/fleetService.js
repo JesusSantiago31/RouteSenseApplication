@@ -98,5 +98,15 @@ export const fleetService = {
     } catch (error) {
       throw new Error(error.response?.data?.detail || error.message);
     }
+  },
+
+  getBusByConductor: async (conductorId) => {
+    try {
+      const response = await apiFlota.get(`/autobuses/conductor/${conductorId}`);
+      return response.data;
+    } catch (error) {
+      // Si no tiene bus asignado, retornamos null
+      return null;
+    }
   }
 };

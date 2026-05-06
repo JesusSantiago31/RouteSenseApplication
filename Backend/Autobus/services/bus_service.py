@@ -20,6 +20,9 @@ def create_bus(db: Session, data: BusCreate):
 def get_buses(db: Session):
     return db.query(Autobus).all()
 
+def get_bus_by_conductor(db: Session, conductor_id: str):
+    return db.query(Autobus).filter(Autobus.conductor_id == conductor_id).first()
+
 def update_bus(db: Session, bus_id: str, data: BusCreate):
     bus = db.query(Autobus).filter(Autobus.bus_id == bus_id).first()
     if bus:
