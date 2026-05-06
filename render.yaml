@@ -94,3 +94,31 @@ services:
     region: ohio
     envVars:
       - fromGroup: routesense-shared
+
+  # 8. Frontend (Aplicación Web)
+  - type: static
+    name: routesense-frontend
+    env: node
+    rootDir: ./Frontend
+    buildCommand: npm install && npm run build
+    publishPath: dist
+    region: ohio
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_GOOGLE_MAPS_API_KEY
+        value: AIzaSyDqCfjcoI9OUjGaivke2tG_L3rXRzBpR1c
+      - key: VITE_API_AUTOBUS_URL
+        value: https://routesense-autobus.onrender.com
+      - key: VITE_API_EMPRESAS_URL
+        value: https://routesense-empresas.onrender.com
+      - key: VITE_API_CONDUCTORES_URL
+        value: https://routesense-conductor.onrender.com
+      - key: VITE_API_RUTAS_URL
+        value: https://routesense-rutas.onrender.com
+      - key: VITE_API_PARADAS_URL
+        value: https://routesense-paradas.onrender.com
+      - key: VITE_API_MONITOREO_URL
+        value: https://routesense-monitoreo.onrender.com
