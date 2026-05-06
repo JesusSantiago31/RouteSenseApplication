@@ -28,6 +28,16 @@ const createMarkerIcon = (color) => ({
   anchor: window.google ? new window.google.maps.Point(12, 22) : null,
 });
 
+const createBusIcon = (color) => ({
+  path: "M20 12c0-1.1-.9-2-2-2V7c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10h1.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5h7c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5H22v-5c0-1.1-.9-2-2-2zM4 7h12v5H4V7zm14 11c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zM6 18c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z",
+  fillColor: color,
+  fillOpacity: 1,
+  strokeWeight: 1,
+  strokeColor: "#FFFFFF",
+  scale: 1.8,
+  anchor: window.google ? new window.google.maps.Point(12, 12) : null,
+});
+
 export default function MapContainer({ 
   isLoaded, 
   clickedPos, 
@@ -40,7 +50,9 @@ export default function MapContainer({
   onStopClick,
   editingRoute,
   setEditingRoute,
-  showRouteForm
+  showRouteForm,
+  livePositions = [],
+  buses = []
 }) {
   const [directionsResponse, setDirectionsResponse] = useState(null);
   const directionsRendererRef = React.useRef(null);
@@ -88,24 +100,53 @@ export default function MapContainer({
             >
                 {clickedPos && <Marker position={clickedPos} icon={window.google ? createMarkerIcon(newStopColor) : null} />}
                 
-                {/* Renderizar múltiples polilíneas de rutas visibles */}
-                {visibleRoutes.map(rutaId => {
-                  const detalles = allRouteDetails[rutaId];
-                  if (!detalles?.google_polyline) return null;
-                  return (
-                    <Polyline 
-                      key={`poly-${rutaId}`}
-                      path={window.google.maps.geometry.encoding.decodePath(detalles.google_polyline)} 
-                      options={{ 
-                        strokeColor: detalles.ruta?.color || '#3498db', 
-                        strokeOpacity: 0.8, 
-                        strokeWeight: 6 
-                      }} 
-                    />
-                  );
-                })}
+                {/* Renderizado Consolidado de Rutas Visibles (Línea + Paradas) */}
+                <React.Fragment key={`routes-layer-${visibleRoutes.length}`}>
+                  {visibleRoutes.map(rutaId => {
+                    const idStr = String(rutaId);
+                    const detalles = allRouteDetails[idStr];
+                    if (!detalles) return null;
+                    
+                    const routeColor = detalles.ruta?.color || '#3498db';
+                    const isBeingEdited = showRouteForm && String(editingRoute?.ruta_id) === idStr;
 
-                {/* Renderizar marcadores de paradas visibles o todas si estamos creando ruta */}
+                    return (
+                      <React.Fragment key={`render-route-${idStr}`}>
+                        {/* 1. La línea de la ruta (solo si no se está editando esta misma ruta) */}
+                        {detalles.google_polyline && !isBeingEdited && (
+                          <Polyline 
+                            key={`poly-${idStr}-${routeColor}`}
+                            path={window.google.maps.geometry.encoding.decodePath(detalles.google_polyline)} 
+                            options={{ 
+                              strokeColor: routeColor, 
+                              strokeOpacity: 0.8, 
+                              strokeWeight: 6,
+                              clickable: false
+                            }} 
+                          />
+                        )}
+
+                        {/* 2. Los marcadores de las paradas de esta ruta */}
+                        {detalles.paradas?.map(p => {
+                          const pIdStr = String(p.parada_id);
+                          if (visibleStops.map(id => String(id)).includes(pIdStr)) return null;
+                          if (!p.latitud || !p.longitud) return null;
+
+                          return (
+                            <Marker 
+                              key={`stop-v-${idStr}-${pIdStr}`} 
+                              position={{ lat: Number(p.latitud), lng: Number(p.longitud) }} 
+                              icon={window.google ? createMarkerIcon(p.color || routeColor) : null}
+                              opacity={0.8}
+                            />
+                          );
+                        })}
+                      </React.Fragment>
+                    );
+                  })}
+                </React.Fragment>
+
+                {/* Renderizar marcadores de paradas individuales o durante creación de ruta */}
                 {paradas.filter(p => showRouteForm || visibleStops.includes(p.parada_id)).map(p => {
                   const indexInRoute = editingRoute?.paradas_ids?.indexOf(p.parada_id);
                   const isSelectedForRoute = showRouteForm && indexInRoute !== undefined && indexInRoute !== -1;
@@ -114,7 +155,7 @@ export default function MapContainer({
                   
                   return (
                     <Marker 
-                      key={`stop-${p.parada_id}`} 
+                      key={`stop-ctrl-${p.parada_id}`} 
                       position={{ lat: Number(p.lugar.latitud), lng: Number(p.lugar.longitud) }} 
                       icon={window.google ? createMarkerIcon(stopColor) : null}
                       onClick={() => onStopClick && onStopClick(p.parada_id)}
@@ -129,26 +170,31 @@ export default function MapContainer({
                   );
                 })}
 
-                {/* Renderizar la ruta que se está creando/editando con DirectionsRenderer para seguir calles */}
+                {/* Renderizar la ruta interactiva durante la edición */}
                 {directionsResponse && showRouteForm && (
                   <DirectionsRenderer
-                    key={`route-${editingRoute?.color}`} // Fuerza a re-renderizar la línea si el color cambia
+                    key={`route-edit-${editingRoute?.ruta_id || 'new'}-${editingRoute?.color}`}
                     directions={directionsResponse}
                     onLoad={(r) => directionsRendererRef.current = r}
+                    onUnmount={() => directionsRendererRef.current = null}
                     onDirectionsChanged={() => {
                       if (directionsRendererRef.current) {
                         const currentDirs = directionsRendererRef.current.getDirections();
                         if (currentDirs && currentDirs.routes[0]) {
                           const newPolyline = currentDirs.routes[0].overview_polyline;
                           if (setEditingRoute) {
-                            setEditingRoute(prev => ({...prev, google_polyline: newPolyline}));
+                            // Solo actualizar si la polilínea realmente cambió para evitar bucles infinitos
+                            setEditingRoute(prev => {
+                              if (prev.google_polyline === newPolyline) return prev;
+                              return {...prev, google_polyline: newPolyline};
+                            });
                           }
                         }
                       }
                     }}
                     options={{
-                      suppressMarkers: true, // Ya renderizamos nuestros propios marcadores
-                      draggable: true, // Permite arrastrar la ruta
+                      suppressMarkers: true,
+                      draggable: true,
                       polylineOptions: {
                         strokeColor: editingRoute?.color || '#f1c40f',
                         strokeWeight: 6,
@@ -158,22 +204,25 @@ export default function MapContainer({
                   />
                 )}
 
-                {/* También mostrar paradas de las rutas visibles si no están ya en visibleStops */}
-                {visibleRoutes.map(rutaId => {
-                  const detalles = allRouteDetails[rutaId];
-                  const routeColor = detalles.ruta?.color || '#3498db';
-                  return detalles?.paradas?.map(p => {
-                    if (visibleStops.includes(p.parada_id)) return null;
-                    if (!p.latitud || !p.longitud) return null;
-                    return (
-                      <Marker 
-                        key={`route-stop-${rutaId}-${p.parada_id}`} 
-                        position={{ lat: Number(p.latitud), lng: Number(p.longitud) }} 
-                        icon={window.google ? createMarkerIcon(p.color || routeColor) : null}
-                        opacity={0.8}
-                      />
-                    );
-                  });
+                {/* Renderizar Autobuses en Tiempo Real */}
+                {livePositions.map(pos => {
+                  const bus = buses.find(b => String(b.bus_id) === String(pos.bus_id));
+                  if (!pos.latitud || !pos.longitud) return null;
+                  
+                  return (
+                    <Marker
+                      key={`live-bus-${pos.bus_id}`}
+                      position={{ lat: Number(pos.latitud), lng: Number(pos.longitud) }}
+                      icon={window.google ? createBusIcon(bus?.color || '#e74c3c') : null}
+                      label={{
+                        text: `${bus?.placa || 'BUS'} (${pos.velocidad || 0} km/h)`,
+                        color: "#FFFFFF",
+                        fontSize: "12px",
+                        fontWeight: "bold",
+                        className: "bg-slate-800/80 px-2 py-1 rounded-md border border-white/20 -translate-y-10"
+                      }}
+                    />
+                  );
                 })}
             </GoogleMap>
         ) : (

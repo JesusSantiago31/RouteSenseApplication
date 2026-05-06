@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LoginAdmin from './pages/auth/LoginAdmin';
 import Dashboard from './pages/admin/Dashboard';
 import UserHome from './pages/user/Home';
+import DriverTracking from './pages/driver/DriverTracking';
 import ProtectedRoute from './routes/ProtectedRoute';
 
 export default function App() {
@@ -28,6 +29,7 @@ export default function App() {
         {/* Rutas de Usuario Protegidas */}
         <Route element={<ProtectedRoute isAllowed={isUser} redirectTo="/login" />}>
           <Route path="/app/home" element={<UserHome />} />
+          <Route path="/driver/tracking" element={<DriverTracking />} />
         </Route>
 
         {/* 404 - Opcional */}

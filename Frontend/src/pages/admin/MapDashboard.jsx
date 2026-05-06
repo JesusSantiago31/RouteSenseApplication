@@ -5,6 +5,7 @@ import { routeService } from '../../services/routeService';
 import { stopService } from '../../services/stopService';
 import { companyService } from '../../services/companyService';
 import { fleetService } from '../../services/fleetService';
+import { trackingService } from '../../services/trackingService';
 
 // Subcomponentes
 import Sidebar from './components/Sidebar';
@@ -17,6 +18,7 @@ export default function MapDashboard() {
   const [visibleRoutes, setVisibleRoutes] = useState([]);
   const [visibleStops, setVisibleStops] = useState([]);
   const [allRouteDetails, setAllRouteDetails] = useState({});
+  const [livePositions, setLivePositions] = useState([]);
   
   // Estados de Filtros
   const [filters, setFilters] = useState({ search: '', color: [], municipio: [], estado: [] });
@@ -41,7 +43,11 @@ export default function MapDashboard() {
   const [showDriverForm, setShowDriverForm] = useState(false);
   const [editingDriver, setEditingDriver] = useState(null);
 
-  const { isLoaded } = useJsApiLoader({ id: 'google-map-script', googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '' });
+  const { isLoaded } = useJsApiLoader({ 
+    id: 'google-map-script', 
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
+    libraries: ['geometry', 'drawing']
+  });
 
   const fetchData = async () => {
     try {
@@ -61,6 +67,17 @@ export default function MapDashboard() {
   };
 
   useEffect(() => { fetchData(); }, []);
+
+  // MONITOREO EN TIEMPO REAL
+  useEffect(() => {
+    const fetchLivePositions = async () => {
+      const positions = await trackingService.getLivePositions();
+      setLivePositions(positions);
+    };
+    fetchLivePositions();
+    const interval = setInterval(fetchLivePositions, 5000); 
+    return () => clearInterval(interval);
+  }, []);
 
   // FILTROS
   const filterOptions = useMemo(() => {
@@ -102,14 +119,15 @@ export default function MapDashboard() {
 
   // HANDLERS FUNCIONALES
   const toggleRouteVisibility = async (rutaId) => {
-    if (visibleRoutes.includes(rutaId)) {
-      setVisibleRoutes(visibleRoutes.filter(id => id !== rutaId));
+    const idStr = String(rutaId);
+    if (visibleRoutes.includes(idStr)) {
+      setVisibleRoutes(prev => prev.filter(id => String(id) !== idStr));
     } else {
-      if (!allRouteDetails[rutaId]) {
-        const detalles = await routeService.getRouteDetails(rutaId);
-        if (detalles) setAllRouteDetails(prev => ({ ...prev, [rutaId]: detalles }));
+      if (!allRouteDetails[idStr]) {
+        const detalles = await routeService.getRouteDetails(idStr);
+        if (detalles) setAllRouteDetails(prev => ({ ...prev, [idStr]: detalles }));
       }
-      setVisibleRoutes([...visibleRoutes, rutaId]);
+      setVisibleRoutes(prev => prev.includes(idStr) ? prev : [...prev, idStr]);
     }
   };
 
@@ -236,6 +254,8 @@ export default function MapDashboard() {
       });
 
       setShowRouteForm(false); 
+      setEditingRoute(null);
+      setClickedPos(null);
       fetchData();
     } catch (err) { alert(err.message); }
   };
@@ -305,6 +325,7 @@ export default function MapDashboard() {
       <main className="flex-1 relative flex flex-col min-w-0">
         <div className="flex-1 relative w-full h-full">
            <MapContainer 
+              key={visibleRoutes.join(',')}
               isLoaded={isLoaded} 
               clickedPos={clickedPos} 
               onMapClick={handleMapClick} 
@@ -317,6 +338,8 @@ export default function MapDashboard() {
               editingRoute={editingRoute}
               setEditingRoute={setEditingRoute}
               showRouteForm={showRouteForm}
+              livePositions={livePositions}
+              buses={buses}
            />
         </div>
       </main>

@@ -83,3 +83,14 @@ services:
     region: ohio
     envVars:
       - fromGroup: routesense-shared
+
+  # 7. Servicio de Monitoreo (Real-time Tracking)
+  - type: web
+    name: routesense-monitoreo
+    runtime: docker
+    dockerContext: ./Backend/Monitoreo
+    dockerfilePath: Backend/Monitoreo/Dockerfile
+    plan: free
+    region: ohio
+    envVars:
+      - fromGroup: routesense-shared
