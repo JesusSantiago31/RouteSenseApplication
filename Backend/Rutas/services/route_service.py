@@ -90,7 +90,8 @@ def get_route_with_stops(db: Session, ruta_id: str):
                 "orden": p.orden,
                 "nombre": nombre_parada,
                 "latitud": lat,
-                "longitud": lng
+                "longitud": lng,
+                "color": parada_info.color if parada_info else "#3498db"
             })
                     
         dir_data = get_directions(origen.latitud, origen.longitud, destino.latitud, destino.longitud, waypoints)
