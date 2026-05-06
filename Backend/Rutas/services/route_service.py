@@ -29,7 +29,7 @@ def create_full_route(db: Session, data: RutaFullCreate):
         nombre=data.nombre,
         color=data.color,
         activa=data.activa,
-        distancia_km=data.distancia_km,
+        distancia_km=data.distancia_km if data.distancia_km > 0 else 1.0,
         numero_paradas=len(data.paradas_ids),
         origen_id=origen_id,
         destino_id=destino_id,
