@@ -37,7 +37,7 @@ export default function LoginUser() {
         <div className="auth-card">
           <div className="auth-header">
             <div className="auth-logo">
-              <Navigation size={32} />
+              <img src={logo} alt="RouteSense" className="w-full h-full object-contain" />
             </div>
             <h1>Bienvenido a RouteSense</h1>
             <p>Tu viaje inteligente comienza aquí</p>

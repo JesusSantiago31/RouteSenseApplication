@@ -8,11 +8,17 @@ import { fleetService } from '../../services/fleetService';
 import { trackingService } from '../../services/trackingService';
 
 // Subcomponentes
+import { LogOut, Bell, User as UserIcon, Layers, LocateFixed } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import MapContainer from './components/MapContainer';
 
 export default function MapDashboard() {
   const navigate = useNavigate();
+  
+  const handleLogout = () => {
+    localStorage.removeItem('routesense_admin_token');
+    navigate('/login');
+  };
   const [rutas, setRutas] = useState([]);
   const [paradas, setParadas] = useState([]);
   const [visibleRoutes, setVisibleRoutes] = useState([]);
@@ -353,6 +359,31 @@ export default function MapDashboard() {
               livePositions={livePositions}
               buses={buses}
            />
+
+           {/* Perfil de Administrador y Acciones */}
+           <div className="user-profile-header absolute top-6 right-6 z-50 flex items-center gap-4">
+             <div className="user-profile-floating flex items-center gap-3 bg-white/90 backdrop-blur-md px-5 py-2.5 rounded-full shadow-2xl border border-white/50">
+               <div className="avatar-circle w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center shadow-lg">
+                 <UserIcon size={20} />
+               </div>
+               <div className="user-text flex flex-col">
+                 <span className="greeting text-[9px] font-black text-primary/60 uppercase tracking-widest leading-none mb-1">Centro de Control</span>
+                 <span className="username text-sm font-black text-slate-800 tracking-tight leading-none">ADMINISTRADOR</span>
+               </div>
+             </div>
+
+             <div className="header-actions flex gap-2">
+               <button className="action-circle w-12 h-12 bg-white/90 backdrop-blur-md text-slate-400 hover:text-primary rounded-full flex items-center justify-center shadow-xl border border-white/50 transition-all hover:scale-110">
+                 <Bell size={20} />
+               </button>
+               <button 
+                 className="action-circle w-12 h-12 bg-white/90 backdrop-blur-md text-slate-400 hover:text-red-500 rounded-full flex items-center justify-center shadow-xl border border-white/50 transition-all hover:scale-110" 
+                 onClick={handleLogout}
+               >
+                 <LogOut size={20} />
+               </button>
+             </div>
+           </div>
         </div>
       </main>
     </div>

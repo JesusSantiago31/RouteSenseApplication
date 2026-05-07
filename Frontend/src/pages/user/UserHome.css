@@ -1,28 +1,61 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 .user-home {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  overflow: hidden;
+  width: 100vw !important;
+  height: 100vh !important;
+  display: flex !important;
+  overflow: hidden !important;
   background-color: #f8fafc;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.map-area {
+  flex: 1;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  min-width: 0; /* Crítico para flexbox */
 }
 
 /* Sidebar */
 .route-sidebar {
-  width: 320px;
+  width: 400px; /* Más ancho en pantallas grandes */
+  flex-shrink: 0;
   height: 100%;
   background: white;
   box-shadow: 10px 0 30px rgba(0,0,0,0.05);
   display: flex;
   flex-direction: column;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s ease;
   z-index: 100;
+  overflow: hidden;
+}
+
+.route-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+@media (max-width: 1024px) {
+  .route-sidebar {
+    width: 320px; /* Tamaño estándar en tablets */
+  }
 }
 
 @media (max-width: 768px) {
   .route-sidebar {
     position: absolute;
     left: 0;
+    width: 280px; /* Compacto en móvil */
     transform: translateX(-100%);
+    box-shadow: 20px 0 50px rgba(0,0,0,0.15);
   }
   .route-sidebar.open {
     transform: translateX(0);
@@ -34,14 +67,20 @@
   border-bottom: 1px solid #f1f5f9;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
   gap: 12px;
 }
 
-.sidebar-header h3 {
+.header-title h3 {
   font-weight: 800;
   color: #1e293b;
   font-size: 16px;
-  flex: 1;
+  margin: 0;
 }
 
 .close-btn {

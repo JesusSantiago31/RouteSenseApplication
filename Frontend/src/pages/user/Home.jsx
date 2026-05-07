@@ -4,8 +4,9 @@ import { routeService } from '../../services/routeService';
 import { trackingService } from '../../services/trackingService';
 import { fleetService } from '../../services/fleetService';
 import { userService } from '../../services/userService';
+import logo from '../../assets/logo.png';
 import { 
-  MapPin, Bus, Navigation, Clock, Layers, LocateFixed, Search, X, 
+  MapPin, Bus, Clock, Layers, LocateFixed, Search, X, 
   CheckCircle2, AlertCircle, MapPinned, User, Bell, LogOut, 
   DollarSign, CreditCard, Ticket, Menu, UserPlus, UserMinus 
 } from 'lucide-react';
@@ -338,7 +339,7 @@ export default function UserHome() {
   if (loading) return <div className="loading-screen"><div className="loader"></div><p>Localizando transporte...</p></div>;
 
   return (
-    <div className="user-home">
+    <div className="user-home flex h-screen w-full overflow-hidden">
       
       {/* Botón Flotante de Menú para Móvil */}
       <button 
@@ -352,7 +353,7 @@ export default function UserHome() {
       <aside className={`route-sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <div className="header-title">
-            <Layers size={20} />
+            <img src={logo} alt="RouteSense" className="w-8 h-8 object-contain" />
             <h3>Rutas Cercanas</h3>
           </div>
           <button onClick={() => setIsSidebarOpen(false)} className="close-btn"><X size={20} /></button>
@@ -391,7 +392,7 @@ export default function UserHome() {
             {filterActiveOnly ? 'Ver todas las rutas' : 'Solo en servicio'}
           </button>
         </div>
-        <div className="route-list">
+        <div className="route-list custom-scrollbar">
           {nearbyRoutes.map(route => {
             const isRouteActive = activeRouteIds.has(String(route.ruta_id).toLowerCase());
             return (
@@ -408,7 +409,7 @@ export default function UserHome() {
                   </div>
                   <div className="route-bottom-meta">
                     <span className="route-dist">
-                      {route.dist ? `${route.dist.toFixed(1)} km cerca` : 'Distancia no disponible'}
+                      {route.dist ? `${route.dist.toFixed(1)} m cerca` : 'Distancia no disponible'}
                     </span>
                     <div className="route-fare-badge">
                        <DollarSign size={10} />
@@ -609,10 +610,7 @@ export default function UserHome() {
           </div>
           
           <div className="header-actions">
-            <button className="action-btn" title="Notificaciones">
-              <Bell size={20} />
-              <span className="notification-badge"></span>
-            </button>
+            
             <button onClick={handleLogout} className="action-btn logout" title="Cerrar Sesión">
               <LogOut size={20} />
             </button>

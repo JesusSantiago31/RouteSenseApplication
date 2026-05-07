@@ -61,7 +61,7 @@ export default function RegisterUser() {
         <div className="auth-card">
           <div className="auth-header">
             <div className="auth-logo">
-              <Navigation size={32} />
+              <img src={logo} alt="RouteSense" className="w-full h-full object-contain" />
             </div>
             <h1>Únete a RouteSense</h1>
             <p>Crea tu cuenta para empezar a viajar mejor</p>

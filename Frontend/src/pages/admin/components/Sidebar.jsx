@@ -4,6 +4,7 @@ import {
   Map as MapIcon, Truck, Building2, User, UserCheck, Users,
   ChevronRight, MapPinned, ChevronDown
 } from 'lucide-react';
+import logo from '../../../assets/logo.png';
 
 const MultiSelect = ({ options, selected, onChange, placeholder, renderOption }) => {
   const [open, setOpen] = useState(false);
@@ -93,6 +94,17 @@ export default function Sidebar({
         <CompanyForm show={showCompanyForm} onClose={() => setShowCompanyForm(false)} onSubmit={onSaveCompany} companyData={editingCompany} setCompanyData={setEditingCompany} />
         <BusForm key={`bus-${showBusForm}`} show={showBusForm} onClose={() => setShowBusForm(false)} onSubmit={onSaveBus} onDelete={onDeleteBus} busData={editingBus} companies={companies} drivers={drivers} />
         <DriverForm key={`driver-${showDriverForm}`} show={showDriverForm} onClose={() => setShowDriverForm(false)} onSubmit={onSaveDriver} onDelete={onDeleteDriver} driverData={editingDriver} companies={companies} />
+
+        {/* CABECERA DE MARCA */}
+        <div className="px-8 py-8 flex items-center gap-5 border-b border-slate-50 bg-gradient-to-br from-white to-slate-50/30">
+            <div className="w-14 h-14 bg-white rounded-[22px] shadow-2xl shadow-primary/10 p-2.5 border border-slate-100 flex items-center justify-center transform -rotate-3 hover:rotate-0 transition-transform duration-500">
+               <img src={logo} alt="RouteSense Logo" className="w-full h-full object-contain" />
+            </div>
+            <div className="space-y-0.5">
+               <h1 className="text-2xl font-black text-slate-800 tracking-tighter leading-none">RouteSense</h1>
+               <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] opacity-60">Centro de Control</p>
+            </div>
+        </div>
 
         {/* TABS NAVEGACIÓN */}
         <div className="flex p-4 gap-2 bg-slate-50/50 border-b border-slate-100">
