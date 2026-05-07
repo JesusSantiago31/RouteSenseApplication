@@ -47,6 +47,7 @@ class Ruta(Base):
     numero_paradas = Column(Integer, nullable=False, default=0)
     color = Column(String(7), default="#3498db")
     google_polyline = Column(String, nullable=True)
+    estado_republica = Column(String(50), nullable=True, default="CDMX")
     
     # Relación con Tarifas
     tarifa_id = Column(UUID(as_uuid=True), ForeignKey("transporte.tarifas.tarifa_id"), nullable=True)

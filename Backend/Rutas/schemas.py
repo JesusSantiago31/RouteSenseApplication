@@ -27,6 +27,7 @@ class RutaBase(BaseModel):
     numero_paradas: int = 0
     color: Optional[str] = "#3498db"
     google_polyline: Optional[str] = None
+    estado_republica: Optional[str] = "CDMX"
     # Campos temporales para recibir del front
     tipo_tarifa: Optional[str] = "fija"
     monto_tarifa: Optional[float] = 0.0

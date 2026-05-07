@@ -28,9 +28,12 @@ export const userService = {
   },
 
   getProfile: async (token) => {
+    const activeToken = token || localStorage.getItem('routesense_user_token');
+    if (!activeToken) return null;
+    
     const response = await apiClientes.get('/clients/me', {
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${activeToken}`
       }
     });
     return response.data;

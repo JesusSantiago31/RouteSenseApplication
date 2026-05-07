@@ -17,8 +17,12 @@ def update_position(db: Session, data: PosicionCreate):
     db.refresh(posicion)
     return posicion
 
+from datetime import datetime, timedelta
+
 def get_all_positions(db: Session):
-    return db.query(Posicion).all()
+    # Solo devolver posiciones actualizadas en el último minuto para garantizar tiempo real
+    umbral = datetime.utcnow() - timedelta(seconds=60)
+    return db.query(Posicion).filter(Posicion.ultima_actualizacion >= umbral).all()
 
 # Solicitudes de parada
 def create_stop_request(db: Session, data: ParadaSolicitudCreate):

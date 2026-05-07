@@ -32,6 +32,8 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
+const LIBRARIES = ['geometry'];
+
 export default function UserHome() {
   const [allRoutes, setAllRoutes] = useState([]);
   const [activeRoutes, setActiveRoutes] = useState({}); // { routeId: details }
@@ -49,7 +51,7 @@ export default function UserHome() {
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-    libraries: ['geometry']
+    libraries: LIBRARIES
   });
 
   // Inicializar datos y ubicación
@@ -68,17 +70,17 @@ export default function UserHome() {
         }
         
         // Cargar datos de usuario
-        const token = localStorage.getItem('routesense_user_token');
-        if (token) {
-          const profile = await userService.getProfile(token);
+        const profile = await userService.getProfile();
+        console.log("Perfil cargado:", profile);
+        if (profile) {
           setUserData(profile);
           const requests = await trackingService.getUserRequests(profile.user_id || profile.id);
-          if (requests.length > 0) setUserRequest(requests[0]);
+          if (requests && requests.length > 0) setUserRequest(requests[0]);
         }
 
-        // Cargar buses para mapeo de rutas
+        // Cargar buses iniciales
         const buses = await fleetService.getBuses();
-        setAllBuses(buses);
+        if (buses) setAllBuses(buses);
       } catch (err) {
         console.error("Error init UserHome:", err);
       } finally {
@@ -88,16 +90,45 @@ export default function UserHome() {
     init();
   }, []);
 
-  // Tracking de buses en tiempo real
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterActiveOnly, setFilterActiveOnly] = useState(false);
+  const [filterEstado, setFilterEstado] = useState('Todos');
+
+  // Tracking de buses en tiempo real (Puro y constante)
   useEffect(() => {
     const fetchPositions = async () => {
-      const positions = await trackingService.getLivePositions();
-      setBusPositions(positions);
+      try {
+        const positions = await trackingService.getLivePositions();
+        setBusPositions(positions);
+      } catch (err) {
+        console.error("Error tracking:", err);
+      }
     };
+    
     fetchPositions();
     const interval = setInterval(fetchPositions, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  // Autodescubrimiento de metadatos (Separado para no bloquear el tracking)
+  useEffect(() => {
+    const discoverBuses = async () => {
+      for (const pos of busPositions) {
+        const exists = allBuses.find(b => String(b.bus_id).toLowerCase() === String(pos.bus_id).toLowerCase());
+        if (!exists && pos.conductor_id) {
+          fleetService.getBusByConductor(pos.conductor_id).then(busData => {
+            if (busData) {
+              setAllBuses(prev => {
+                if (prev.some(b => String(b.bus_id).toLowerCase() === String(busData.bus_id).toLowerCase())) return prev;
+                return [...prev, busData];
+              });
+            }
+          });
+        }
+      }
+    };
+    if (busPositions.length > 0) discoverBuses();
+  }, [busPositions, allBuses.length]);
 
   const toggleRoute = async (routeId) => {
     if (activeRoutes[routeId]) {
@@ -153,72 +184,117 @@ export default function UserHome() {
   };
 
   const handleBusClick = async (pos) => {
-    const busInfo = allBuses.find(b => b.bus_id === pos.bus_id);
-    if (!busInfo) return;
-
-    let routeDetails = activeRoutes[busInfo.ruta_id];
-    if (!routeDetails) {
-      routeDetails = await routeService.getRouteDetails(busInfo.ruta_id);
+    console.log("Bus clicked:", pos.bus_id, "Current buses in state:", allBuses.length);
+    
+    // 1. EXTRAER INFORMACIÓN DESDE EL VÍNCULO DEL CONDUCTOR (Como en el panel de conductor)
+    let busInfo = allBuses.find(b => String(b.bus_id).toLowerCase() === String(pos.bus_id).toLowerCase());
+    
+    if (!busInfo && pos.conductor_id) {
+      console.log("Buscando bus por vínculo de conductor:", pos.conductor_id);
+      busInfo = await fleetService.getBusByConductor(pos.conductor_id);
+    }
+    
+    if (!busInfo) {
+      busInfo = {
+        bus_id: pos.bus_id,
+        ruta_id: pos.ruta_id, 
+        placa: 'En tránsito',
+        empresa: 'RutaSense Fleet',
+        color: '#3b82f6'
+      };
     }
 
-    if (!routeDetails) return;
-
-    // Calcular parada anterior y próxima basada en la posición actual
     const busPos = { lat: parseFloat(pos.latitud), lng: parseFloat(pos.longitud) };
-    const stops = routeDetails.paradas.map(s => ({
-      ...s,
-      dist: calculateDistance(busPos.lat, busPos.lng, parseFloat(s.latitud), parseFloat(s.longitud))
-    }));
 
-    // Encontrar la parada más cercana
-    const sortedStops = [...stops].sort((a, b) => a.dist - b.dist);
-    const closestIdx = routeDetails.paradas.findIndex(s => s.parada_id === sortedStops[0].parada_id);
-    
-    // Estimación simple: el bus va en orden de paradas
-    const lastStop = closestIdx > 0 ? routeDetails.paradas[closestIdx - 1] : null;
-    const nextStop = routeDetails.paradas[closestIdx];
-    const eta = Math.max(1, Math.round(sortedStops[0].dist / 0.4)); // Aprox 24km/h
-
+    // 2. Mostrar datos básicos de inmediato
     setSelectedBusData({
       pos: busPos,
-      plate: busInfo.placa,
+      plate: busInfo.placa || 'En tránsito',
       company: busInfo.empresa || 'Empresa Independiente',
-      routeName: routeDetails.ruta.nombre,
-      start: routeDetails.paradas[0]?.nombre || 'Origen',
-      end: routeDetails.paradas[routeDetails.paradas.length - 1]?.nombre || 'Destino',
-      lastStop: lastStop?.nombre || 'Iniciando recorrido',
-      nextStop: nextStop?.nombre || 'Finalizando recorrido',
-      eta: eta || 1,
-      color: routeDetails.ruta.color,
-      fare: routeDetails.ruta.monto_tarifa,
-      fareType: routeDetails.ruta.tipo_tarifa,
-      payments: {
-        cash: routeDetails.ruta.acepta_efectivo,
-        card: routeDetails.ruta.acepta_tarjeta,
-        special: routeDetails.ruta.acepta_tarjeta_especial
-      }
+      routeName: 'Cargando detalles...',
+      start: '...',
+      end: '...',
+      lastStop: 'Calculando...',
+      nextStop: 'Calculando...',
+      eta: '...',
+      color: busInfo.color || '#3b82f6',
+      fare: 0,
+      fareType: 'fija',
+      payments: { cash: true, card: false, special: false }
     });
+
+    // 3. Cargar detalles de ruta en segundo plano
+    try {
+      const rutaId = busInfo.ruta_id || pos.ruta_id;
+      if (!rutaId) return;
+
+      let routeDetails = activeRoutes[rutaId];
+      if (!routeDetails) {
+        routeDetails = await routeService.getRouteDetails(rutaId);
+      }
+
+      if (routeDetails && routeDetails.ruta) {
+        const stopsWithDist = (routeDetails.paradas || []).map(s => ({
+          ...s,
+          dist: calculateDistance(busPos.lat, busPos.lng, parseFloat(s.latitud), parseFloat(s.longitud))
+        }));
+
+        const sortedStops = [...stopsWithDist].sort((a, b) => a.dist - b.dist);
+        const closestIdx = (routeDetails.paradas || []).findIndex(s => s.parada_id === sortedStops[0]?.parada_id);
+        const lastStop = closestIdx > 0 ? routeDetails.paradas[closestIdx - 1] : null;
+        const nextStop = routeDetails.paradas[closestIdx];
+        const eta = sortedStops[0] ? Math.max(1, Math.round(sortedStops[0].dist / 0.4)) : 1;
+
+        setSelectedBusData(prev => ({
+          ...prev,
+          routeName: routeDetails.ruta.nombre,
+          start: routeDetails.paradas[0]?.nombre || 'Origen',
+          end: routeDetails.paradas[routeDetails.paradas.length - 1]?.nombre || 'Destino',
+          lastStop: lastStop?.nombre || 'Inicio de Ruta',
+          nextStop: nextStop?.nombre || 'Fin de Ruta',
+          eta: eta,
+          color: routeDetails.ruta.color || prev.color,
+          fare: routeDetails.ruta.monto_tarifa || 0,
+          fareType: routeDetails.ruta.tipo_tarifa || 'fija',
+          payments: {
+            cash: routeDetails.ruta.acepta_efectivo ?? true,
+            card: routeDetails.ruta.acepta_tarjeta ?? false,
+            special: routeDetails.ruta.acepta_tarjeta_especial ?? false
+          }
+        }));
+      }
+    } catch (error) {
+      console.error("Error al cargar detalles de ruta:", error);
+    }
   };
 
-  const nearbyRoutes = useMemo(() => {
-    return allRoutes.map(r => {
-      let dist = null;
-      if (currentPos && r.origen_lat && r.origen_lng) {
-        dist = calculateDistance(currentPos.lat, currentPos.lng, parseFloat(r.origen_lat), parseFloat(r.origen_lng));
-      }
-      return { ...r, dist };
-    }).sort((a, b) => (a.dist || 999) - (b.dist || 999));
-  }, [allRoutes, currentPos]);
-
   const activeRouteIds = useMemo(() => {
-    // Mapear bus_id de las posiciones a su ruta_id correspondiente usando la lista de buses completa
     const activeIds = new Set();
     busPositions.forEach(pos => {
-      const busInfo = allBuses.find(b => b.bus_id === pos.bus_id);
-      if (busInfo?.ruta_id) activeIds.add(busInfo.ruta_id);
+      const busInfo = allBuses.find(b => String(b.bus_id).toLowerCase() === String(pos.bus_id).toLowerCase());
+      if (busInfo?.ruta_id) activeIds.add(String(busInfo.ruta_id).toLowerCase());
     });
     return activeIds;
   }, [busPositions, allBuses]);
+
+  const nearbyRoutes = useMemo(() => {
+    return allRoutes
+      .map(r => {
+        let dist = null;
+        if (currentPos && r.origen_lat && r.origen_lng) {
+          dist = calculateDistance(currentPos.lat, currentPos.lng, parseFloat(r.origen_lat), parseFloat(r.origen_lng));
+        }
+        return { ...r, dist };
+      })
+      .filter(r => {
+        const matchesSearch = r.nombre.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesStatus = filterActiveOnly ? activeRouteIds.has(String(r.ruta_id).toLowerCase()) : true;
+        // Filtro por estado real (usando el campo de DB)
+        const matchesEstado = filterEstado === 'Todos' || String(r.estado_republica) === filterEstado;
+        return matchesSearch && matchesStatus && matchesEstado;
+      })
+      .sort((a, b) => (a.dist || 999) - (b.dist || 999));
+  }, [allRoutes, currentPos, searchQuery, filterActiveOnly, filterEstado, activeRouteIds]);
 
   if (loading) return <div className="loading-screen"><div className="loader"></div><p>Localizando transporte...</p></div>;
 
@@ -228,13 +304,49 @@ export default function UserHome() {
       {/* Sidebar de Rutas */}
       <aside className={`route-sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <Layers size={20} />
-          <h3>Rutas Cercanas</h3>
+          <div className="header-title">
+            <Layers size={20} />
+            <h3>Rutas Cercanas</h3>
+          </div>
           <button onClick={() => setIsSidebarOpen(false)} className="close-btn"><X size={20} /></button>
+        </div>
+
+        <div className="sidebar-filters">
+          <div className="filter-group">
+            <span className="filter-label">Estado</span>
+            <select 
+              className="estado-select"
+              value={filterEstado}
+              onChange={(e) => setFilterEstado(e.target.value)}
+            >
+              <option value="Todos">Todos los estados</option>
+              <option value="CDMX">Ciudad de México</option>
+              <option value="Estado de México">Estado de México</option>
+              <option value="Jalisco">Jalisco</option>
+              <option value="Nuevo León">Nuevo León</option>
+              <option value="Puebla">Puebla</option>
+            </select>
+          </div>
+
+          <div className="search-box">
+            <Search size={16} />
+            <input 
+              type="text" 
+              placeholder="Buscar ruta..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <button 
+            className={`filter-btn ${filterActiveOnly ? 'active' : ''}`}
+            onClick={() => setFilterActiveOnly(!filterActiveOnly)}
+          >
+            {filterActiveOnly ? 'Ver todas las rutas' : 'Solo en servicio'}
+          </button>
         </div>
         <div className="route-list">
           {nearbyRoutes.map(route => {
-            const isRouteActive = activeRouteIds.has(route.ruta_id);
+            const isRouteActive = activeRouteIds.has(String(route.ruta_id).toLowerCase());
             return (
               <div key={route.ruta_id} className={`route-item ${activeRoutes[route.ruta_id] ? 'active' : ''}`} onClick={() => toggleRoute(route.ruta_id)}>
                 <div className="route-color" style={{ backgroundColor: route.color }}></div>
@@ -247,9 +359,15 @@ export default function UserHome() {
                       <span className="status-badge inactive">Sin Servicio</span>
                     )}
                   </div>
-                  <span className="route-dist">
-                    {route.dist ? `${route.dist.toFixed(1)} km cerca` : 'Distancia no disponible'}
-                  </span>
+                  <div className="route-bottom-meta">
+                    <span className="route-dist">
+                      {route.dist ? `${route.dist.toFixed(1)} km cerca` : 'Distancia no disponible'}
+                    </span>
+                    <div className="route-fare-badge">
+                       <DollarSign size={10} />
+                       <span>${route.monto_tarifa || 0}</span>
+                    </div>
+                  </div>
                 </div>
                 <div className="route-check">
                   {activeRoutes[route.ruta_id] ? <CheckCircle2 size={18} /> : <div className="circle-placeholder"></div>}
@@ -320,22 +438,24 @@ export default function UserHome() {
 
             {/* Buses en Tiempo Real */}
             {busPositions.map(pos => {
-              const busInfo = allBuses.find(b => b.bus_id === pos.bus_id);
-              const busColor = busInfo?.color || '#3b82f6';
-              
-              return (
-                <Marker 
-                  key={pos.bus_id}
-                  position={{ lat: parseFloat(pos.latitud), lng: parseFloat(pos.longitud) }}
-                  icon={{
-                    url: createBusIcon(busColor),
-                    scaledSize: new window.google.maps.Size(40, 48),
-                    anchor: new google.maps.Point(20, 48)
-                  }}
-                  onClick={() => handleBusClick(pos)}
-                />
-              );
-            })}
+                const busInfo = allBuses.find(b => String(b.bus_id).toLowerCase() === String(pos.bus_id).toLowerCase());
+                const busColor = busInfo?.color || '#3b82f6';
+                
+                return (
+                  <Marker 
+                    key={pos.bus_id}
+                    position={{ lat: parseFloat(pos.latitud), lng: parseFloat(pos.longitud) }}
+                    zIndex={1000}
+                    icon={{
+                      url: createBusIcon(busColor),
+                      scaledSize: new window.google.maps.Size(40, 48),
+                      anchor: new google.maps.Point(20, 48)
+                    }}
+                    onClick={() => handleBusClick(pos)}
+                  />
+                );
+              })
+            }
 
             {/* Info Window para Parada Seleccionada */}
             {selectedStop && (
