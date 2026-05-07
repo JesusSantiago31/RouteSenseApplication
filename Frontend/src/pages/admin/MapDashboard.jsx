@@ -17,8 +17,12 @@ export default function MapDashboard() {
   
   const handleLogout = () => {
     localStorage.removeItem('routesense_admin_token');
+    localStorage.removeItem('routesense_admin_name');
     navigate('/login');
   };
+
+  const [adminName, setAdminName] = useState(localStorage.getItem('routesense_admin_name') || 'ADMINISTRADOR');
+
   const [rutas, setRutas] = useState([]);
   const [paradas, setParadas] = useState([]);
   const [visibleRoutes, setVisibleRoutes] = useState([]);
@@ -367,15 +371,13 @@ export default function MapDashboard() {
                  <UserIcon size={20} />
                </div>
                <div className="user-text flex flex-col">
-                 <span className="greeting text-[9px] font-black text-primary/60 uppercase tracking-widest leading-none mb-1">Centro de Control</span>
-                 <span className="username text-sm font-black text-slate-800 tracking-tight leading-none">ADMINISTRADOR</span>
+                 <span className="greeting text-[9px] font-black text-primary/60 uppercase tracking-widest leading-none mb-1">HOLA,</span>
+                 <span className="username text-sm font-black text-slate-800 tracking-tight leading-none">{adminName}</span>
                </div>
              </div>
 
              <div className="header-actions flex gap-2">
-               <button className="action-circle w-12 h-12 bg-white/90 backdrop-blur-md text-slate-400 hover:text-primary rounded-full flex items-center justify-center shadow-xl border border-white/50 transition-all hover:scale-110">
-                 <Bell size={20} />
-               </button>
+            
                <button 
                  className="action-circle w-12 h-12 bg-white/90 backdrop-blur-md text-slate-400 hover:text-red-500 rounded-full flex items-center justify-center shadow-xl border border-white/50 transition-all hover:scale-110" 
                  onClick={handleLogout}
