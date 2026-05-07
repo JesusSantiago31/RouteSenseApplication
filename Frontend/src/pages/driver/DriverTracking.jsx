@@ -3,7 +3,7 @@ import { GoogleMap, useJsApiLoader, Polyline, Marker } from '@react-google-maps/
 import { trackingService } from '../../services/trackingService';
 import { fleetService } from '../../services/fleetService';
 import { routeService } from '../../services/routeService';
-import { MapPin, Navigation, Bus, AlertCircle, Play, Square, User as UserIcon, Clock, MapPinned, LocateFixed } from 'lucide-react';
+import { MapPin, Navigation, Bus, AlertCircle, Play, Square, User as UserIcon, Clock, MapPinned, LocateFixed, Bell, X, UserPlus, UserMinus } from 'lucide-react';
 
 const mapContainerStyle = { width: '100%', height: '100%' };
 const mapOptions = {
@@ -85,6 +85,7 @@ export default function DriverTracking() {
   }, []);
 
   const [stopRequests, setStopRequests] = useState([]);
+  const [isRequestsOpen, setIsRequestsOpen] = useState(false);
 
   useEffect(() => {
     let watchId = null;
@@ -254,12 +255,49 @@ export default function DriverTracking() {
         )}
 
         {/* Botón Recapitular - Responsivo */}
-        <button 
-          onClick={recenterMap}
-          className="absolute right-4 top-4 md:right-6 md:top-6 z-10 w-12 h-12 md:w-14 md:h-14 bg-white rounded-xl md:rounded-2xl shadow-xl flex items-center justify-center text-slate-400 hover:text-primary transition-all active:scale-90 border border-slate-100"
-        >
-          <LocateFixed size={20} className="md:w-6 md:h-6" />
-        </button>
+        <div className="absolute right-4 top-4 md:right-6 md:top-6 z-10 flex flex-col gap-3">
+          <button 
+            onClick={recenterMap}
+            className="w-12 h-12 md:w-14 md:h-14 bg-white rounded-xl md:rounded-2xl shadow-xl flex items-center justify-center text-slate-400 hover:text-primary transition-all active:scale-90 border border-slate-100"
+          >
+            <LocateFixed size={20} className="md:w-6 md:h-6" />
+          </button>
+          
+          {stopRequests.length > 0 && (
+            <button 
+              onClick={() => setIsRequestsOpen(!isRequestsOpen)}
+              className="w-12 h-12 md:w-14 md:h-14 bg-orange-500 rounded-xl md:rounded-2xl shadow-xl flex items-center justify-center text-white animate-pulse transition-all active:scale-90"
+            >
+              <Bell size={20} className="md:w-6 md:h-6" />
+            </button>
+          )}
+        </div>
+
+        {/* Panel Lateral de Solicitudes (Drawer) */}
+        {isRequestsOpen && stopRequests.length > 0 && (
+          <div className="absolute top-24 right-4 md:right-6 z-30 w-64 md:w-80 bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border border-slate-100 overflow-hidden animate-in slide-in-from-right">
+            <div className="p-4 bg-slate-900 text-white flex justify-between items-center">
+              <h3 className="text-xs font-black uppercase tracking-widest">Solicitudes Activas</h3>
+              <button onClick={() => setIsRequestsOpen(false)} className="text-slate-400 hover:text-white"><X size={18}/></button>
+            </div>
+            <div className="max-h-60 overflow-y-auto p-3 space-y-2">
+              {stopRequests.map((req) => {
+                const stop = route?.paradas?.find(s => s.parada_id === req.parada_id);
+                return (
+                  <div key={req.solicitud_id} className="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${req.tipo === 'subir' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                      {req.tipo === 'subir' ? <UserPlus size={18}/> : <UserMinus size={18}/>}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{req.tipo === 'subir' ? 'Esperando subir' : 'Solicita bajar'}</p>
+                      <h4 className="text-xs font-bold text-slate-800 truncate">{stop?.nombre || 'Parada desconocida'}</h4>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Panel Inferior de Navegación - Responsivo */}
         <div className="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6 z-20">

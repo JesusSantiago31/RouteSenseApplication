@@ -586,15 +586,39 @@
   margin-bottom: 16px;
 }
 
+.stop-action-btns {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
 .req-stop-btn {
-  width: 100%;
-  color: white;
-  border: none;
+  flex: 1;
   padding: 10px;
-  border-radius: 10px;
+  border-radius: 12px;
+  font-size: 11px;
   font-weight: 700;
-  font-size: 12px;
+  text-transform: uppercase;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: white;
+  transition: all 0.2s;
+}
+
+.req-stop-btn.subir {
+  color: #10b981;
+}
+
+.req-stop-btn.bajar {
+  color: #ef4444;
+}
+
+.req-stop-btn:hover {
+  filter: brightness(0.95);
+  transform: translateY(-1px);
 }
 
 /* Animations */

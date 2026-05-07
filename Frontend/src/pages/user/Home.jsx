@@ -7,7 +7,7 @@ import { userService } from '../../services/userService';
 import { 
   MapPin, Bus, Navigation, Clock, Layers, LocateFixed, Search, X, 
   CheckCircle2, AlertCircle, MapPinned, User, Bell, LogOut, 
-  DollarSign, CreditCard, Ticket, Menu 
+  DollarSign, CreditCard, Ticket, Menu, UserPlus, UserMinus 
 } from 'lucide-react';
 import './UserHome.css';
 
