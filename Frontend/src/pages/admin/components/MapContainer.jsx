@@ -55,7 +55,19 @@ export default function MapContainer({
   buses = []
 }) {
   const [directionsResponse, setDirectionsResponse] = useState(null);
+  const [currentAdminPos, setCurrentAdminPos] = useState(null);
   const directionsRendererRef = React.useRef(null);
+  const mapRef = React.useRef(null);
+
+  // Autolocalización del Administrador
+  useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition((p) => {
+        const pos = { lat: p.coords.latitude, lng: p.coords.longitude };
+        setCurrentAdminPos(pos);
+      }, (err) => console.log("Admin GPS denegado:", err));
+    }
+  }, []);
 
   useEffect(() => {
     if (!window.google) return;
@@ -93,11 +105,28 @@ export default function MapContainer({
         {isLoaded ? (
             <GoogleMap 
               mapContainerStyle={{ width: '100%', height: '100%' }} 
-              center={defaultCenter} 
+              center={currentAdminPos || defaultCenter} 
               zoom={13} 
               options={mapOptions} 
               onClick={onMapClick}
+              onLoad={(map) => mapRef.current = map}
             >
+                {/* Mi Ubicación (Admin) */}
+                {currentAdminPos && (
+                  <Marker 
+                    position={currentAdminPos} 
+                    icon={{
+                      path: window.google?.maps.SymbolPath.CIRCLE,
+                      fillColor: '#3b82f6',
+                      fillOpacity: 1,
+                      strokeColor: '#fff',
+                      strokeWeight: 3,
+                      scale: 10
+                    }}
+                    zIndex={100}
+                  />
+                )}
+
                 {clickedPos && <Marker position={clickedPos} icon={window.google ? createMarkerIcon(newStopColor) : null} />}
                 
                 {/* Renderizado Consolidado de Rutas Visibles (Línea + Paradas) */}
