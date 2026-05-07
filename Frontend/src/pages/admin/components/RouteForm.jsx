@@ -76,7 +76,7 @@ export default function RouteForm({ show, onClose, onSubmit, onDelete, routeData
           </div>
 
           {/* Selector de Autobuses */}
-          <div>
+          <div className="mb-6">
             <label className="text-[10px] font-black text-primary mb-2 block tracking-[0.2em] uppercase opacity-80">Asignar Unidades (Autobuses)</label>
             <div className="h-24 overflow-y-auto bg-slate-50/50 border border-slate-100 rounded-[20px] p-3 space-y-1 custom-scrollbar">
                {buses.map(b => {
@@ -100,6 +100,73 @@ export default function RouteForm({ show, onClose, onSubmit, onDelete, routeData
                })}
                {buses.length === 0 && <p className="text-xs text-slate-400 text-center py-4">No hay autobuses disponibles</p>}
             </div>
+          </div>
+
+          {/* Tarifas y Pagos */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 bg-slate-50/80 rounded-[30px] border border-slate-100">
+             <div className="space-y-4">
+                <label className="text-[10px] font-black text-primary mb-2 block tracking-[0.2em] uppercase opacity-80">Configuración de Tarifa</label>
+                <div className="flex gap-2">
+                   <button 
+                      type="button"
+                      onClick={() => setRouteData({...routeData, tipo_tarifa: 'fija'})}
+                      className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${routeData.tipo_tarifa === 'fija' ? 'bg-primary text-white shadow-lg' : 'bg-white text-slate-400 border border-slate-200'}`}
+                   >
+                      Ruta Completa
+                   </button>
+                   <button 
+                      type="button"
+                      onClick={() => setRouteData({...routeData, tipo_tarifa: 'por_parada'})}
+                      className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${routeData.tipo_tarifa === 'por_parada' ? 'bg-primary text-white shadow-lg' : 'bg-white text-slate-400 border border-slate-200'}`}
+                   >
+                      Por Parada
+                   </button>
+                </div>
+                <div className="relative">
+                   <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">$</span>
+                   <input 
+                      type="number" 
+                      step="0.5"
+                      value={routeData.monto_tarifa || 0}
+                      onChange={e => setRouteData({...routeData, monto_tarifa: e.target.value})}
+                      className="w-full pl-8 pr-4 py-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      placeholder="Monto"
+                   />
+                </div>
+             </div>
+
+             <div className="space-y-4">
+                <label className="text-[10px] font-black text-primary mb-2 block tracking-[0.2em] uppercase opacity-80">Métodos de Pago Aceptados</label>
+                <div className="grid grid-cols-1 gap-2">
+                   <label className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 cursor-pointer hover:border-primary/30 transition-all">
+                      <input 
+                         type="checkbox" 
+                         checked={routeData.acepta_efectivo} 
+                         onChange={e => setRouteData({...routeData, acepta_efectivo: e.target.checked})}
+                         className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary"
+                      />
+                      <span className="text-xs font-bold text-slate-600">Efectivo</span>
+                   </label>
+                   <label className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 cursor-pointer hover:border-primary/30 transition-all">
+                      <input 
+                         type="checkbox" 
+                         checked={routeData.acepta_tarjeta} 
+                         onChange={e => setRouteData({...routeData, acepta_tarjeta: e.target.checked})}
+                         className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary"
+                      />
+                      <span className="text-xs font-bold text-slate-600">Tarjeta Débito/Crédito</span>
+                   </label>
+                   <label className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 cursor-pointer hover:border-primary/30 transition-all">
+                      <input 
+                         type="checkbox" 
+                         checked={routeData.acepta_tarjeta_especial} 
+                         onChange={e => setRouteData({...routeData, acepta_tarjeta_especial: e.target.checked})}
+                         className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary"
+                      />
+                      <span className="text-xs font-bold text-slate-600">Tarjeta Especial (Prepago)</span>
+                   </label>
+                </div>
+             </div>
           </div>
 
           <div className="flex gap-4 pt-4">

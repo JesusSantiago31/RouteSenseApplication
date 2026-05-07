@@ -4,7 +4,11 @@ import { routeService } from '../../services/routeService';
 import { trackingService } from '../../services/trackingService';
 import { fleetService } from '../../services/fleetService';
 import { userService } from '../../services/userService';
-import { MapPin, Bus, Navigation, Clock, Layers, LocateFixed, Search, X, CheckCircle2, AlertCircle, MapPinned, User, Bell, LogOut } from 'lucide-react';
+import { 
+  MapPin, Bus, Navigation, Clock, Layers, LocateFixed, Search, X, 
+  CheckCircle2, AlertCircle, MapPinned, User, Bell, LogOut, 
+  DollarSign, CreditCard, Ticket, Menu 
+} from 'lucide-react';
 import './UserHome.css';
 
 const mapContainerStyle = { width: '100%', height: '100%' };
@@ -35,6 +39,7 @@ export default function UserHome() {
   const [allBuses, setAllBuses] = useState([]);
   const [currentPos, setCurrentPos] = useState(null);
   const [selectedStop, setSelectedStop] = useState(null);
+  const [selectedBusData, setSelectedBusData] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [userRequest, setUserRequest] = useState(null);
   const [userData, setUserData] = useState(null);
@@ -90,7 +95,7 @@ export default function UserHome() {
       setBusPositions(positions);
     };
     fetchPositions();
-    const interval = setInterval(fetchPositions, 5000);
+    const interval = setInterval(fetchPositions, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -134,6 +139,65 @@ export default function UserHome() {
     localStorage.removeItem('routesense_user_data');
     localStorage.removeItem('routesense_token');
     window.location.href = '/login';
+  };
+
+  const createBusIcon = (color) => {
+    const svg = `
+      <svg width="40" height="48" viewBox="0 0 40 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 48C20 48 40 32.5 40 18C40 8.05888 31.0457 0 20 0C8.9543 0 0 8.05888 0 18C0 32.5 20 48 20 48Z" fill="${color}"/>
+        <circle cx="20" cy="18" r="15" fill="white"/>
+        <path d="M27,16H13c-1.1,0-2,0.9-2,2v7c0,1.1,0.9,2,2,2h1v1c0,0.6,0.4,1,1,1h1c0.6,0,1-0.4,1-1v-1h4v1c0,0.6,0.4,1,1,1h1 c0.6,0,1-0.4,1-1v-1h1c1.1,0,2-0.9,2-2v-7C29,16.9,28.1,16,27,16z M17,24c-0.6,0-1-0.4-1-1c0-0.6,0.4-1,1-1s1,0.4,1,1 C18,23.6,17.6,24,17,24z M23,24c-0.6,0-1-0.4-1-1c0-0.6,0.4-1,1-1s1,0.4,1,1C24,23.6,23.6,24,23,24z M27,21H13v-3h14V21z" fill="${color}"/>
+      </svg>
+    `.replace(/\s+/g, ' ');
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+  };
+
+  const handleBusClick = async (pos) => {
+    const busInfo = allBuses.find(b => b.bus_id === pos.bus_id);
+    if (!busInfo) return;
+
+    let routeDetails = activeRoutes[busInfo.ruta_id];
+    if (!routeDetails) {
+      routeDetails = await routeService.getRouteDetails(busInfo.ruta_id);
+    }
+
+    if (!routeDetails) return;
+
+    // Calcular parada anterior y próxima basada en la posición actual
+    const busPos = { lat: parseFloat(pos.latitud), lng: parseFloat(pos.longitud) };
+    const stops = routeDetails.paradas.map(s => ({
+      ...s,
+      dist: calculateDistance(busPos.lat, busPos.lng, parseFloat(s.latitud), parseFloat(s.longitud))
+    }));
+
+    // Encontrar la parada más cercana
+    const sortedStops = [...stops].sort((a, b) => a.dist - b.dist);
+    const closestIdx = routeDetails.paradas.findIndex(s => s.parada_id === sortedStops[0].parada_id);
+    
+    // Estimación simple: el bus va en orden de paradas
+    const lastStop = closestIdx > 0 ? routeDetails.paradas[closestIdx - 1] : null;
+    const nextStop = routeDetails.paradas[closestIdx];
+    const eta = Math.max(1, Math.round(sortedStops[0].dist / 0.4)); // Aprox 24km/h
+
+    setSelectedBusData({
+      pos: busPos,
+      plate: busInfo.placa,
+      company: busInfo.empresa || 'Empresa Independiente',
+      routeName: routeDetails.ruta.nombre,
+      start: routeDetails.paradas[0]?.nombre || 'Origen',
+      end: routeDetails.paradas[routeDetails.paradas.length - 1]?.nombre || 'Destino',
+      lastStop: lastStop?.nombre || 'Iniciando recorrido',
+      nextStop: nextStop?.nombre || 'Finalizando recorrido',
+      eta: eta || 1,
+      color: routeDetails.ruta.color,
+      fare: routeDetails.ruta.monto_tarifa,
+      fareType: routeDetails.ruta.tipo_tarifa,
+      payments: {
+        cash: routeDetails.ruta.acepta_efectivo,
+        card: routeDetails.ruta.acepta_tarjeta,
+        special: routeDetails.ruta.acepta_tarjeta_especial
+      }
+    });
   };
 
   const nearbyRoutes = useMemo(() => {
@@ -255,17 +319,23 @@ export default function UserHome() {
             ))}
 
             {/* Buses en Tiempo Real */}
-            {busPositions.map(pos => (
-              <Marker 
-                key={pos.bus_id}
-                position={{ lat: parseFloat(pos.latitud), lng: parseFloat(pos.longitud) }}
-                icon={{
-                  url: 'https://cdn-icons-png.flaticon.com/512/3448/3448339.png', // Icono bus
-                  scaledSize: new window.google.maps.Size(35, 35)
-                }}
-                label={{ text: "Bus", color: '#1e293b', fontSize: '10px', fontWeight: 'bold', className: 'bus-label' }}
-              />
-            ))}
+            {busPositions.map(pos => {
+              const busInfo = allBuses.find(b => b.bus_id === pos.bus_id);
+              const busColor = busInfo?.color || '#3b82f6';
+              
+              return (
+                <Marker 
+                  key={pos.bus_id}
+                  position={{ lat: parseFloat(pos.latitud), lng: parseFloat(pos.longitud) }}
+                  icon={{
+                    url: createBusIcon(busColor),
+                    scaledSize: new window.google.maps.Size(40, 48),
+                    anchor: new google.maps.Point(20, 48)
+                  }}
+                  onClick={() => handleBusClick(pos)}
+                />
+              );
+            })}
 
             {/* Info Window para Parada Seleccionada */}
             {selectedStop && (
@@ -279,6 +349,60 @@ export default function UserHome() {
                   <button onClick={requestStop} className="req-stop-btn" style={{ backgroundColor: selectedStop.route_color }}>
                     Solicitar Parada
                   </button>
+                </div>
+              </InfoWindow>
+            )}
+            {/* Info Window para Autobús Seleccionado */}
+            {selectedBusData && (
+              <InfoWindow 
+                position={selectedBusData.pos}
+                onCloseClick={() => setSelectedBusData(null)}
+              >
+                <div className="bus-info-window">
+                  <div className="bus-window-header" style={{ borderLeft: `4px solid ${selectedBusData.color}` }}>
+                    <span className="bus-window-company">{selectedBusData.company}</span>
+                    <h4 className="bus-window-route">{selectedBusData.routeName}</h4>
+                  </div>
+                  <div className="bus-window-body">
+                    <div className="bus-meta-row">
+                      <Bus size={14} />
+                      <span className="bus-plate">Matrícula: <strong>{selectedBusData.plate}</strong></span>
+                    </div>
+                    <div className="bus-route-path">
+                      <div className="path-dot"></div>
+                      <div className="path-line"></div>
+                      <div className="path-dot"></div>
+                      <div className="path-info">
+                        <span className="path-point"><strong>Inicio:</strong> {selectedBusData.start}</span>
+                        <span className="path-point"><strong>Fin:</strong> {selectedBusData.end}</span>
+                      </div>
+                    </div>
+                    <div className="bus-stops-tracking">
+                      <div className="stop-tracking-item">
+                        <span className="stop-track-label">Última Parada:</span>
+                        <span className="stop-track-value">{selectedBusData.lastStop}</span>
+                      </div>
+                      <div className="stop-tracking-item next">
+                        <div className="next-stop-header">
+                          <span className="stop-track-label">Próxima Parada:</span>
+                          <span className="eta-badge"><Clock size={10} /> {selectedBusData.eta} min</span>
+                        </div>
+                        <span className="stop-track-value">{selectedBusData.nextStop}</span>
+                      </div>
+                    </div>
+
+                    <div className="bus-fare-section">
+                      <div className="fare-info">
+                        <span className="fare-label">Tarifa {selectedBusData.fareType === 'fija' ? 'Fija' : 'p/ Parada'}:</span>
+                        <span className="fare-amount">${selectedBusData.fare}</span>
+                      </div>
+                      <div className="payment-methods">
+                        {selectedBusData.payments.cash && <div className="pay-icon" title="Efectivo"><DollarSign size={12} /></div>}
+                        {selectedBusData.payments.card && <div className="pay-icon" title="Tarjeta"><CreditCard size={12} /></div>}
+                        {selectedBusData.payments.special && <div className="pay-icon" title="Tarjeta Especial"><Ticket size={12} /></div>}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </InfoWindow>
             )}

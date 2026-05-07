@@ -266,7 +266,19 @@ export default function MapDashboard() {
   };
 
   const onNewRoute = () => {
-    setEditingRoute({ nombre: '', color: '#3498db', distancia_km: 0, activa: true, paradas_ids: [], buses_ids: [] });
+    setEditingRoute({ 
+      nombre: '', 
+      color: '#3498db', 
+      distancia_km: 0, 
+      activa: true, 
+      paradas_ids: [], 
+      buses_ids: [],
+      tipo_tarifa: 'fija',
+      monto_tarifa: 0.0,
+      acepta_efectivo: true,
+      acepta_tarjeta: false,
+      acepta_tarjeta_especial: false
+    });
     setIsCreatingRoute(true);
     setShowRouteForm(true);
   };

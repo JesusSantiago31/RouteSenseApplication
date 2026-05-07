@@ -109,6 +109,17 @@ export default function DriverTracking() {
     }
   };
 
+  const createBusIcon = (color) => {
+    const svg = `
+      <svg width="40" height="48" viewBox="0 0 40 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 48C20 48 40 32.5 40 18C40 8.05888 31.0457 0 20 0C8.9543 0 0 8.05888 0 18C0 32.5 20 48 20 48Z" fill="${color}"/>
+        <circle cx="20" cy="18" r="15" fill="white"/>
+        <path d="M27,16H13c-1.1,0-2,0.9-2,2v7c0,1.1,0.9,2,2,2h1v1c0,0.6,0.4,1,1,1h1c0.6,0,1-0.4,1-1v-1h4v1c0,0.6,0.4,1,1,1h1 c0.6,0,1-0.4,1-1v-1h1c1.1,0,2-0.9,2-2v-7C29,16.9,28.1,16,27,16z M17,24c-0.6,0-1-0.4-1-1c0-0.6,0.4-1,1-1s1,0.4,1,1 C18,23.6,17.6,24,17,24z M23,24c-0.6,0-1-0.4-1-1c0-0.6,0.4-1,1-1s1,0.4,1,1C24,23.6,23.6,24,23,24z M27,21H13v-3h14V21z" fill="${color}"/>
+      </svg>
+    `.replace(/\s+/g, ' ');
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+  };
+
   const nextStopInfo = useMemo(() => {
     if (!currentPos || !route || !route.paradas || route.paradas.length === 0) return null;
     const distances = route.paradas.map(stop => ({
@@ -185,13 +196,9 @@ export default function DriverTracking() {
                 position={currentPos} 
                 zIndex={1000}
                 icon={{ 
-                  path: window.google ? google.maps.SymbolPath.FORWARD_CLOSED_ARROW : 0, 
-                  fillColor: '#005cc8', 
-                  fillOpacity: 1, 
-                  strokeColor: '#FFF', 
-                  strokeWeight: 3, 
-                  scale: 10,
-                  rotation: 0 
+                  url: createBusIcon(bus?.color || '#005cc8'),
+                  scaledSize: new window.google.maps.Size(40, 48),
+                  anchor: new google.maps.Point(20, 48)
                 }} 
               />
             )}

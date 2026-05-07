@@ -261,6 +261,216 @@
   max-width: 200px;
 }
 
+.bus-label-hud {
+  background: white;
+  padding: 2px 8px;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  border: 1px solid #f1f5f9;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Bus Info Window Styling */
+.bus-info-window {
+  padding: 8px 4px;
+  max-width: 240px;
+  font-family: 'Inter', sans-serif;
+}
+
+.bus-window-header {
+  padding: 0 0 10px 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.bus-window-company {
+  font-size: 9px;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+}
+
+.bus-window-route {
+  margin: 2px 0 0 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.bus-window-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bus-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.bus-plate strong {
+  color: #334155;
+}
+
+.bus-route-path {
+  display: flex;
+  gap: 12px;
+  position: relative;
+  padding-left: 4px;
+}
+
+.path-line {
+  position: absolute;
+  left: 8px;
+  top: 14px;
+  bottom: 14px;
+  width: 2px;
+  background: #e2e8f0;
+  border-radius: 1px;
+}
+
+.path-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #cbd5e1;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.path-dot:first-child { margin-top: 6px; }
+.path-dot:nth-child(3) { margin-top: 24px; border-color: #94a3b8; }
+
+.path-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.path-point {
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.2;
+}
+
+.path-point strong {
+  display: block;
+  font-size: 8px;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.bus-stops-tracking {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stop-tracking-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.stop-track-label {
+  font-size: 8px;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.stop-track-value {
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.stop-tracking-item.next .stop-track-label {
+  color: #3b82f6;
+}
+
+.next-stop-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.eta-badge {
+  background: #eff6ff;
+  color: #2563eb;
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 9px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stop-tracking-item.next .stop-track-value {
+  color: #1e40af;
+}
+
+.bus-fare-section {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fare-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.fare-label {
+  font-size: 8px;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.fare-amount {
+  font-size: 16px;
+  font-weight: 800;
+  color: #16a34a;
+}
+
+.payment-methods {
+  display: flex;
+  gap: 6px;
+}
+
+.pay-icon {
+  width: 24px;
+  height: 24px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  transition: all 0.2s;
+}
+
+.pay-icon:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
 .stop-info-window h4 {
   margin: 0 0 8px 0;
   font-weight: 800;

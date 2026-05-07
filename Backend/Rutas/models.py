@@ -34,6 +34,13 @@ class Ruta(Base):
     numero_paradas = Column(Integer, nullable=False, default=0)
     color = Column(String(7), default="#3498db")
     google_polyline = Column(String, nullable=True)
+    
+    # Tarifas y Pagos
+    tipo_tarifa = Column(String(20), default="fija") # fija o por_parada
+    monto_tarifa = Column(Numeric(8,2), default=0.0)
+    acepta_efectivo = Column(Boolean, default=True)
+    acepta_tarjeta = Column(Boolean, default=False)
+    acepta_tarjeta_especial = Column(Boolean, default=False)
 
 class RutaParada(Base):
     __tablename__ = "rutas_paradas"

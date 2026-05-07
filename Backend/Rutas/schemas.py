@@ -9,8 +9,13 @@ class RutaBase(BaseModel):
     distancia_km: Decimal
     activa: bool = True
     numero_paradas: int = 0
-    color: str = "#3498db"
-    google_polyline: str | None = None
+    color: Optional[str] = "#3498db"
+    google_polyline: Optional[str] = None
+    tipo_tarifa: str = "fija"
+    monto_tarifa: float = 0.0
+    acepta_efectivo: bool = True
+    acepta_tarjeta: bool = False
+    acepta_tarjeta_especial: bool = False
 
 class RutaCreate(RutaBase):
     pass
