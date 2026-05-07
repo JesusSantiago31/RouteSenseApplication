@@ -5,6 +5,7 @@ import models, schemas
 from services import tracking_service
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
+from uuid import UUID
 
 # Crear tablas si no existen
 models.Base.metadata.create_all(bind=engine)
@@ -36,9 +37,21 @@ def get_positions(db: Session = Depends(get_db)):
     """Endpoint para que el dashboard obtenga todas las ubicaciones actuales"""
     return tracking_service.get_all_positions(db)
 
-@app.get("/tracking/{bus_id}", response_model=schemas.PosicionResponse)
-def get_bus_position(bus_id: str, db: Session = Depends(get_db)):
-    return tracking_service.get_bus_position(db, bus_id)
+# Endpoints de Solicitud de Parada
+@app.post("/requests/", response_model=schemas.ParadaSolicitudResponse)
+def solicitar_parada(data: schemas.ParadaSolicitudCreate, db: Session = Depends(get_db)):
+    return tracking_service.create_stop_request(db, data)
+
+@app.put("/requests/{solicitud_id}/cancel", response_model=schemas.ParadaSolicitudResponse)
+def cancelar_solicitud(solicitud_id: UUID, db: Session = Depends(get_db)):
+    solicitud = tracking_service.cancel_stop_request(db, solicitud_id)
+    if not solicitud:
+        raise HTTPException(status_code=404, detail="Solicitud no encontrada")
+    return solicitud
+
+@app.get("/requests/user/{user_id}", response_model=List[schemas.ParadaSolicitudResponse])
+def obtener_solicitudes_usuario(user_id: UUID, db: Session = Depends(get_db)):
+    return tracking_service.get_active_requests_by_user(db, user_id)
 
 if __name__ == "__main__":
     import uvicorn

@@ -1,14 +1,14 @@
 from pydantic import BaseModel
 from uuid import UUID
 from datetime import datetime
-from decimal import Decimal
+from typing import Optional, List
 
 class PosicionBase(BaseModel):
     bus_id: UUID
     conductor_id: UUID
-    latitud: Decimal
-    longitud: Decimal
-    velocidad: Decimal | None = None
+    latitud: float
+    longitud: float
+    velocidad: Optional[float] = 0
 
 class PosicionCreate(PosicionBase):
     pass
@@ -17,5 +17,12 @@ class PosicionResponse(PosicionBase):
     posicion_id: UUID
     ultima_actualizacion: datetime
 
-    class Config:
-        from_attributes = True
+class ParadaSolicitudCreate(BaseModel):
+    user_id: UUID
+    bus_id: UUID
+    parada_id: UUID
+
+class ParadaSolicitudResponse(ParadaSolicitudCreate):
+    solicitud_id: UUID
+    estado: str
+    fecha_solicitud: datetime
