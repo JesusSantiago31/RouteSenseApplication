@@ -53,6 +53,10 @@ def cancelar_solicitud(solicitud_id: UUID, db: Session = Depends(get_db)):
 def obtener_solicitudes_usuario(user_id: UUID, db: Session = Depends(get_db)):
     return tracking_service.get_active_requests_by_user(db, user_id)
 
+@app.get("/requests/bus/{bus_id}", response_model=List[schemas.ParadaSolicitudResponse])
+def obtener_solicitudes_autobus(bus_id: UUID, db: Session = Depends(get_db)):
+    return tracking_service.get_active_requests_by_bus(db, bus_id)
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8005)

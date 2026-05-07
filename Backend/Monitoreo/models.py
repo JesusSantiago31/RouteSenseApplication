@@ -24,5 +24,6 @@ class ParadaSolicitada(Base):
     user_id = Column(UUID(as_uuid=True), nullable=False)
     bus_id = Column(UUID(as_uuid=True), nullable=False)
     parada_id = Column(UUID(as_uuid=True), nullable=False)
+    tipo = Column(String(10), default="subir") # subir, bajar
     estado = Column(String(20), default="pendiente") # pendiente, completada, cancelada
     fecha_solicitud = Column(TIMESTAMP, server_default=func.now())

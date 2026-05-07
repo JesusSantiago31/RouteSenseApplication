@@ -21,6 +21,7 @@ class ParadaSolicitudCreate(BaseModel):
     user_id: UUID
     bus_id: UUID
     parada_id: UUID
+    tipo: str = "subir"
 
 class ParadaSolicitudResponse(ParadaSolicitudCreate):
     solicitud_id: UUID

@@ -35,11 +35,12 @@ export const trackingService = {
   },
 
   // Solicitar parada (Pasajero)
-  requestStop: async (userId, busId, paradaId) => {
+  requestStop: async (userId, busId, paradaId, tipo = 'subir') => {
     const response = await apiTracking.post('/requests/', {
       user_id: userId,
       bus_id: busId,
-      parada_id: paradaId
+      parada_id: paradaId,
+      tipo: tipo
     });
     return response.data;
   },
@@ -53,6 +54,12 @@ export const trackingService = {
   // Obtener solicitudes activas del usuario
   getUserRequests: async (userId) => {
     const response = await apiTracking.get(`/requests/user/${userId}`);
+    return response.data;
+  },
+
+  // Obtener solicitudes para el conductor
+  getBusRequests: async (busId) => {
+    const response = await apiTracking.get(`/requests/bus/${busId}`);
     return response.data;
   }
 };

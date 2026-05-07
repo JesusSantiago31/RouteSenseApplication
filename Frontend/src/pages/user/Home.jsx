@@ -141,21 +141,23 @@ export default function UserHome() {
     }
   };
 
-  const requestStop = async () => {
-    if (!selectedStop || !currentPos) return;
+  const requestStop = async (tipo = 'subir') => {
+    if (!selectedStop || !userData) return;
     try {
-      const user = JSON.parse(localStorage.getItem('routesense_user_data'));
-      // Buscamos el bus más cercano de la ruta de la parada
-      const busOfRoute = busPositions.find(b => b.ruta_id === selectedStop.ruta_id); // Asumiendo que la posición trae ruta_id
-      
+      // Intentar encontrar el bus asociado a la parada o el primero disponible
+      const busId = selectedBusData?.bus_id || busPositions[0]?.bus_id || '00000000-0000-0000-0000-000000000000';
+
       const req = await trackingService.requestStop(
-        user.user_id || user.id,
-        busOfRoute?.bus_id || '00000000-0000-0000-0000-000000000000', // Fallback si no hay bus activo
-        selectedStop.parada_id
+        userData.user_id || userData.id,
+        busId,
+        selectedStop.parada_id,
+        tipo
       );
       setUserRequest(req);
       setSelectedStop(null);
+      alert(`Solicitud de ${tipo === 'subir' ? 'subida' : 'bajada'} enviada con éxito.`);
     } catch (err) {
+      console.error("Error al solicitar parada:", err);
       alert("No se pudo solicitar la parada.");
     }
   };
@@ -465,10 +467,23 @@ export default function UserHome() {
               >
                 <div className="stop-info-window">
                   <h4>{selectedStop.nombre}</h4>
-                  <p>¿Deseas solicitar que el autobús se detenga aquí?</p>
-                  <button onClick={requestStop} className="req-stop-btn" style={{ backgroundColor: selectedStop.route_color }}>
-                    Solicitar Parada
-                  </button>
+                  <p>¿Qué acción deseas realizar?</p>
+                  <div className="stop-action-btns">
+                    <button 
+                      onClick={() => requestStop('subir')} 
+                      className="req-stop-btn subir" 
+                      style={{ border: `2px solid ${selectedStop.route_color || '#10b981'}` }}
+                    >
+                      <UserPlus size={14} /> Subir aquí
+                    </button>
+                    <button 
+                      onClick={() => requestStop('bajar')} 
+                      className="req-stop-btn bajar" 
+                      style={{ border: `2px solid ${selectedStop.route_color || '#ef4444'}` }}
+                    >
+                      <UserMinus size={14} /> Bajar aquí
+                    </button>
+                  </div>
                 </div>
               </InfoWindow>
             )}

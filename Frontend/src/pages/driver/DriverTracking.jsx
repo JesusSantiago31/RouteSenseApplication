@@ -84,6 +84,8 @@ export default function DriverTracking() {
     initData();
   }, []);
 
+  const [stopRequests, setStopRequests] = useState([]);
+
   useEffect(() => {
     let watchId = null;
     if (isTracking && bus && driver) {
@@ -101,6 +103,24 @@ export default function DriverTracking() {
     }
     return () => watchId && navigator.geolocation.clearWatch(watchId);
   }, [isTracking, bus, driver]);
+
+  // Cargar solicitudes de parada para el conductor
+  useEffect(() => {
+    let interval = null;
+    if (isTracking && bus) {
+      const fetchRequests = async () => {
+        try {
+          const reqs = await trackingService.getBusRequests(bus.bus_id);
+          setStopRequests(reqs);
+        } catch (err) {
+          console.error("Error cargando solicitudes:", err);
+        }
+      };
+      fetchRequests();
+      interval = setInterval(fetchRequests, 8000);
+    }
+    return () => interval && clearInterval(interval);
+  }, [isTracking, bus]);
 
   const recenterMap = () => {
     if (mapRef.current && currentPos) {
@@ -191,6 +211,30 @@ export default function DriverTracking() {
               />
             ))}
 
+            {/* Marcadores de Solicitud de Parada (Pasajeros) */}
+            {stopRequests.map((req) => {
+              // Buscar coordenadas de la parada
+              const stop = route?.paradas?.find(s => s.parada_id === req.parada_id);
+              if (!stop) return null;
+
+              return (
+                <Marker
+                  key={req.solicitud_id}
+                  position={{ lat: parseFloat(stop.latitud), lng: parseFloat(stop.longitud) }}
+                  icon={{
+                    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                    fillColor: req.tipo === 'subir' ? '#10b981' : '#ef4444',
+                    fillOpacity: 1,
+                    strokeColor: '#FFFFFF',
+                    strokeWeight: 2,
+                    scale: 7,
+                    rotation: req.tipo === 'subir' ? 0 : 180,
+                  }}
+                  title={req.tipo === 'subir' ? 'Pasajero esperando' : 'Pasajero por bajar'}
+                />
+              );
+            })}
+
             {currentPos && (
               <Marker 
                 position={currentPos} 
@@ -247,8 +291,18 @@ export default function DriverTracking() {
               
               <div className="p-4 rounded-2xl md:rounded-[30px] border border-slate-100 relative overflow-hidden bg-slate-50/50">
                 <div className="absolute top-0 left-0 w-1.5 h-full" style={{ backgroundColor: route?.ruta?.color || '#005cc8' }}></div>
-                <p className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-2">Servicio</p>
-                <h4 className="font-black text-slate-800 text-sm md:text-base truncate ml-2">{route?.ruta?.nombre || 'Buscando Ruta...'}</h4>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-2">Servicio</p>
+                    <h4 className="font-black text-slate-800 text-sm md:text-base truncate ml-2">{route?.ruta?.nombre || 'Buscando Ruta...'}</h4>
+                  </div>
+                  {stopRequests.length > 0 && (
+                    <div className="bg-orange-500 text-white px-3 py-1 rounded-full flex items-center gap-1.5 animate-pulse shadow-lg shadow-orange-500/20">
+                      <Bell size={12} fill="white" />
+                      <span className="text-[10px] font-black uppercase tracking-tighter">{stopRequests.length} Avisos</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 

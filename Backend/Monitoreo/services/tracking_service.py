@@ -20,8 +20,8 @@ def update_position(db: Session, data: PosicionCreate):
 from datetime import datetime, timedelta
 
 def get_all_positions(db: Session):
-    # Solo devolver posiciones actualizadas en el último minuto para garantizar tiempo real
-    umbral = datetime.utcnow() - timedelta(seconds=60)
+    # Umbral de 15 segundos para máxima precisión en tiempo real
+    umbral = datetime.utcnow() - timedelta(seconds=15)
     return db.query(Posicion).filter(Posicion.ultima_actualizacion >= umbral).all()
 
 # Solicitudes de parada
@@ -43,5 +43,11 @@ def cancel_stop_request(db: Session, solicitud_id: UUID):
 def get_active_requests_by_user(db: Session, user_id: UUID):
     return db.query(ParadaSolicitada).filter(
         ParadaSolicitada.user_id == user_id, 
+        ParadaSolicitada.estado == "pendiente"
+    ).all()
+
+def get_active_requests_by_bus(db: Session, bus_id: UUID):
+    return db.query(ParadaSolicitada).filter(
+        ParadaSolicitada.bus_id == bus_id, 
         ParadaSolicitada.estado == "pendiente"
     ).all()
