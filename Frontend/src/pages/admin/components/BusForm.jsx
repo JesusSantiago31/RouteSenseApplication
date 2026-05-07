@@ -39,8 +39,7 @@ export default function BusForm({ show, onClose, onSubmit, onDelete, busData, co
 
   return (
     <div 
-      className={`absolute top-0 left-0 right-0 bg-white p-9 z-[200] border-b border-slate-100 shadow-2xl shadow-primary/10 rounded-b-[40px] transform transition-all duration-700 ease-in-out ${show ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}
-      style={{ maxHeight: '95%', overflowY: 'auto' }}
+      className={`absolute top-0 left-0 right-0 bg-white p-9 z-[200] border-b border-slate-100 shadow-2xl shadow-primary/10 rounded-b-[40px] transform transition-all duration-700 ease-in-out max-h-[90vh] overflow-y-auto custom-scrollbar ${show ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}
     >
        <div className="flex justify-between mb-8 items-start">
           <div className="space-y-1">

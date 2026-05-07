@@ -6,7 +6,7 @@ export default function RouteForm({ show, onClose, onSubmit, onDelete, routeData
 
   return (
     <div 
-      className={`absolute top-0 left-0 right-0 bg-white/95 backdrop-blur-xl p-9 z-50 border-b border-slate-100 shadow-2xl shadow-primary/10 rounded-b-[40px] transform transition-all duration-700 ease-in-out ${show ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`} 
+      className={`absolute top-0 left-0 right-0 bg-white/95 backdrop-blur-xl p-9 z-50 border-b border-slate-100 shadow-2xl shadow-primary/10 rounded-b-[40px] transform transition-all duration-700 ease-in-out max-h-[90vh] overflow-y-auto custom-scrollbar ${show ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`} 
     >
        <div className="flex justify-between mb-9 items-start">
           <div className="space-y-1">
@@ -183,21 +183,22 @@ export default function RouteForm({ show, onClose, onSubmit, onDelete, routeData
              </div>
           </div>
 
-          <div className="flex gap-4 pt-4">
+          <div className="flex gap-4 pt-6 pb-10">
              {!isCreating && (
                 <button 
                   type="button" 
                   onClick={() => onDelete(routeData.ruta_id)}
-                  className="flex-1 flex items-center justify-center gap-3 py-5 rounded-[22px] border-2 border-red-50 text-red-500 font-black text-xs uppercase tracking-widest hover:bg-red-50 hover:border-red-100 transition-all active:scale-95"
+                  className="flex-1 flex items-center justify-center gap-2 py-5 rounded-[22px] border-2 border-red-50 text-red-500 font-black text-[10px] uppercase tracking-widest hover:bg-red-50 hover:border-red-100 transition-all active:scale-95"
                 >
-                  <Trash2 size={18} /> Borrar
+                  <Trash2 size={16} /> BORRAR
                 </button>
              )}
              <button 
                 type="submit" 
-                className={`flex-[2] flex items-center justify-center gap-3 py-5 rounded-[22px] text-white font-black text-sm uppercase tracking-[0.2em] shadow-xl transition-all hover:-translate-y-1 active:translate-y-0 ${isCreating ? 'bg-gradient-to-r from-secondary to-primary shadow-secondary/25 hover:shadow-secondary/40' : 'bg-primary shadow-primary/25 hover:shadow-primary/40'}`}
+                className={`flex-[2] flex items-center justify-center gap-3 py-5 rounded-[22px] text-white font-black text-xs uppercase tracking-[0.15em] shadow-xl transition-all hover:-translate-y-1 active:translate-y-0 ${isCreating ? 'bg-gradient-to-r from-secondary to-primary shadow-secondary/25 hover:shadow-secondary/40' : 'bg-primary shadow-primary/25 hover:shadow-primary/40'}`}
              >
-                <Save size={18} /> {isCreating ? "Crear Ruta" : "Guardar Cambios"}
+                <Save size={18} className="flex-shrink-0" /> 
+                <span className="whitespace-nowrap">{isCreating ? "CREAR RUTA" : "GUARDAR CAMBIOS"}</span>
              </button>
           </div>
           

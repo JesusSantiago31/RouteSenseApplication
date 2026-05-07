@@ -5,7 +5,7 @@ export default function CompanyForm({ show, onClose, onSubmit, companyData, setC
   if (!show) return null;
 
   return (
-    <div className="absolute inset-x-0 top-0 z-40 bg-white border-b border-slate-100 shadow-2xl animate-in slide-in-from-top duration-500 overflow-hidden">
+    <div className="absolute inset-x-0 top-0 z-40 bg-white border-b border-slate-100 shadow-2xl animate-in slide-in-from-top duration-500 max-h-[90vh] overflow-y-auto custom-scrollbar">
       <header className="px-8 pt-8 pb-4 flex justify-between items-center">
         <div>
           <h3 className="text-xl font-black text-slate-800 tracking-tighter">Alta de Empresa</h3>
