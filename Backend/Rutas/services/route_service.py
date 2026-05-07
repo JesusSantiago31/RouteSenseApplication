@@ -47,7 +47,20 @@ def create_full_route(db: Session, data: RutaFullCreate):
     return ruta
 
 def get_routes(db: Session):
-    return db.query(Ruta).all()
+    # Usamos un join para traer las coordenadas del origen y destino
+    from models import Lugar
+    results = db.query(Ruta, Lugar.latitud, Lugar.longitud).\
+        join(Lugar, Ruta.origen_id == Lugar.lugar_id).all()
+    
+    routes_with_coords = []
+    for ruta, lat, lng in results:
+        # Convertimos el objeto de SQLAlchemy a un diccionario y añadimos las coordenadas
+        r_dict = {c.name: getattr(ruta, c.name) for c in ruta.__table__.columns}
+        r_dict['origen_lat'] = lat
+        r_dict['origen_lng'] = lng
+        routes_with_coords.append(r_dict)
+        
+    return routes_with_coords
 
 def add_stop_to_route(db: Session, ruta_id: str, data: RutaParadaCreate):
     nueva_parada = RutaParada(ruta_id=ruta_id, **data.model_dump())

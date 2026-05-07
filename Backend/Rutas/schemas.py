@@ -27,6 +27,8 @@ class RutaFullCreate(BaseModel):
 
 class RutaResponse(RutaBase):
     ruta_id: UUID
+    origen_lat: Optional[Decimal] = None
+    origen_lng: Optional[Decimal] = None
     model_config = ConfigDict(from_attributes=True)
 
 class RutaParadaBase(BaseModel):

@@ -2,7 +2,9 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { GoogleMap, useJsApiLoader, Polyline, Marker, InfoWindow } from '@react-google-maps/api';
 import { routeService } from '../../services/routeService';
 import { trackingService } from '../../services/trackingService';
-import { MapPin, Bus, Navigation, Clock, Layers, LocateFixed, Search, X, CheckCircle2, AlertCircle, MapPinned } from 'lucide-react';
+import { fleetService } from '../../services/fleetService';
+import { userService } from '../../services/userService';
+import { MapPin, Bus, Navigation, Clock, Layers, LocateFixed, Search, X, CheckCircle2, AlertCircle, MapPinned, User, Bell, LogOut } from 'lucide-react';
 import './UserHome.css';
 
 const mapContainerStyle = { width: '100%', height: '100%' };
@@ -30,10 +32,12 @@ export default function UserHome() {
   const [allRoutes, setAllRoutes] = useState([]);
   const [activeRoutes, setActiveRoutes] = useState({}); // { routeId: details }
   const [busPositions, setBusPositions] = useState([]);
+  const [allBuses, setAllBuses] = useState([]);
   const [currentPos, setCurrentPos] = useState(null);
   const [selectedStop, setSelectedStop] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [userRequest, setUserRequest] = useState(null);
+  const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const mapRef = useRef(null);
 
@@ -58,12 +62,18 @@ export default function UserHome() {
           });
         }
         
-        // Cargar solicitud activa si existe
-        const user = JSON.parse(localStorage.getItem('routesense_user_data'));
-        if (user) {
-          const requests = await trackingService.getUserRequests(user.user_id || user.id);
+        // Cargar datos de usuario
+        const token = localStorage.getItem('routesense_user_token');
+        if (token) {
+          const profile = await userService.getProfile(token);
+          setUserData(profile);
+          const requests = await trackingService.getUserRequests(profile.user_id || profile.id);
           if (requests.length > 0) setUserRequest(requests[0]);
         }
+
+        // Cargar buses para mapeo de rutas
+        const buses = await fleetService.getBuses();
+        setAllBuses(buses);
       } catch (err) {
         console.error("Error init UserHome:", err);
       } finally {
@@ -120,14 +130,31 @@ export default function UserHome() {
     setUserRequest(null);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('routesense_user_data');
+    localStorage.removeItem('routesense_token');
+    window.location.href = '/login';
+  };
+
   const nearbyRoutes = useMemo(() => {
-    if (!currentPos) return allRoutes;
     return allRoutes.map(r => {
-      // Cálculo simplificado de cercanía a la ruta (distancia al origen por ahora)
-      const dist = calculateDistance(currentPos.lat, currentPos.lng, parseFloat(r.origen_lat), parseFloat(r.origen_lng));
+      let dist = null;
+      if (currentPos && r.origen_lat && r.origen_lng) {
+        dist = calculateDistance(currentPos.lat, currentPos.lng, parseFloat(r.origen_lat), parseFloat(r.origen_lng));
+      }
       return { ...r, dist };
-    }).sort((a, b) => a.dist - b.dist);
+    }).sort((a, b) => (a.dist || 999) - (b.dist || 999));
   }, [allRoutes, currentPos]);
+
+  const activeRouteIds = useMemo(() => {
+    // Mapear bus_id de las posiciones a su ruta_id correspondiente usando la lista de buses completa
+    const activeIds = new Set();
+    busPositions.forEach(pos => {
+      const busInfo = allBuses.find(b => b.bus_id === pos.bus_id);
+      if (busInfo?.ruta_id) activeIds.add(busInfo.ruta_id);
+    });
+    return activeIds;
+  }, [busPositions, allBuses]);
 
   if (loading) return <div className="loading-screen"><div className="loader"></div><p>Localizando transporte...</p></div>;
 
@@ -142,18 +169,30 @@ export default function UserHome() {
           <button onClick={() => setIsSidebarOpen(false)} className="close-btn"><X size={20} /></button>
         </div>
         <div className="route-list">
-          {nearbyRoutes.map(route => (
-            <div key={route.ruta_id} className={`route-item ${activeRoutes[route.ruta_id] ? 'active' : ''}`} onClick={() => toggleRoute(route.ruta_id)}>
-              <div className="route-color" style={{ backgroundColor: route.color }}></div>
-              <div className="route-info">
-                <span className="route-name">{route.nombre}</span>
-                <span className="route-dist">{route.dist?.toFixed(1)} km cerca</span>
+          {nearbyRoutes.map(route => {
+            const isRouteActive = activeRouteIds.has(route.ruta_id);
+            return (
+              <div key={route.ruta_id} className={`route-item ${activeRoutes[route.ruta_id] ? 'active' : ''}`} onClick={() => toggleRoute(route.ruta_id)}>
+                <div className="route-color" style={{ backgroundColor: route.color }}></div>
+                <div className="route-info">
+                  <div className="route-top-info">
+                    <span className="route-name">{route.nombre}</span>
+                    {isRouteActive ? (
+                      <span className="status-badge active">En Servicio</span>
+                    ) : (
+                      <span className="status-badge inactive">Sin Servicio</span>
+                    )}
+                  </div>
+                  <span className="route-dist">
+                    {route.dist ? `${route.dist.toFixed(1)} km cerca` : 'Distancia no disponible'}
+                  </span>
+                </div>
+                <div className="route-check">
+                  {activeRoutes[route.ruta_id] ? <CheckCircle2 size={18} /> : <div className="circle-placeholder"></div>}
+                </div>
               </div>
-              <div className="route-check">
-                {activeRoutes[route.ruta_id] ? <CheckCircle2 size={18} /> : <div className="circle-placeholder"></div>}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </aside>
 
@@ -250,6 +289,29 @@ export default function UserHome() {
         <div className="map-hud">
           <button onClick={() => setIsSidebarOpen(true)} className="hud-btn"><Layers size={22} /></button>
           <button onClick={() => { if(currentPos) mapRef.current.panTo(currentPos); }} className="hud-btn"><LocateFixed size={22} /></button>
+        </div>
+
+        {/* Perfil de Usuario y Acciones */}
+        <div className="user-profile-header">
+          <div className="user-info-card">
+            <div className="user-avatar">
+              <User size={20} />
+            </div>
+            <div className="user-meta">
+              <span className="user-welcome">Hola,</span>
+              <span className="user-name">{userData?.nombre || 'Usuario'}</span>
+            </div>
+          </div>
+          
+          <div className="header-actions">
+            <button className="action-btn" title="Notificaciones">
+              <Bell size={20} />
+              <span className="notification-badge"></span>
+            </button>
+            <button onClick={handleLogout} className="action-btn logout" title="Cerrar Sesión">
+              <LogOut size={20} />
+            </button>
+          </div>
         </div>
 
         {/* Panel de Solicitud Activa */}
