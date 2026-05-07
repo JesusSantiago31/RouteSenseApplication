@@ -1,6 +1,22 @@
 from pydantic import BaseModel, ConfigDict
 from uuid import UUID
 from decimal import Decimal
+from typing import Optional, List
+
+class TarifaBase(BaseModel):
+    precio_base: float = 0.0
+    costo_por_km: float = 0.0
+    activa: bool = True
+    acepta_efectivo: bool = True
+    acepta_tarjeta: bool = False
+    acepta_tarjeta_especial: bool = False
+
+class TarifaCreate(TarifaBase):
+    pass
+
+class TarifaResponse(TarifaBase):
+    tarifa_id: UUID
+    model_config = ConfigDict(from_attributes=True)
 
 class RutaBase(BaseModel):
     nombre: str = "Nueva Ruta"
@@ -11,16 +27,15 @@ class RutaBase(BaseModel):
     numero_paradas: int = 0
     color: Optional[str] = "#3498db"
     google_polyline: Optional[str] = None
-    tipo_tarifa: str = "fija"
-    monto_tarifa: float = 0.0
+    # Campos temporales para recibir del front
+    tipo_tarifa: Optional[str] = "fija"
+    monto_tarifa: Optional[float] = 0.0
     acepta_efectivo: bool = True
     acepta_tarjeta: bool = False
     acepta_tarjeta_especial: bool = False
 
 class RutaCreate(RutaBase):
     pass
-
-from typing import List
 
 class RutaFullCreate(BaseModel):
     nombre: str = "Nueva Ruta"
@@ -29,11 +44,18 @@ class RutaFullCreate(BaseModel):
     distancia_km: Decimal = 0.0
     paradas_ids: List[UUID] = []
     google_polyline: str | None = None
+    # Campos de tarifas para creación completa
+    tipo_tarifa: Optional[str] = "fija"
+    monto_tarifa: Optional[float] = 0.0
+    acepta_efectivo: bool = True
+    acepta_tarjeta: bool = False
+    acepta_tarjeta_especial: bool = False
 
 class RutaResponse(RutaBase):
     ruta_id: UUID
     origen_lat: Optional[Decimal] = None
     origen_lng: Optional[Decimal] = None
+    tarifa: Optional[TarifaResponse] = None
     model_config = ConfigDict(from_attributes=True)
 
 class RutaParadaBase(BaseModel):

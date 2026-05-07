@@ -18,6 +18,19 @@ class Parada(Base):
     lugar_id = Column(UUID(as_uuid=True), ForeignKey("lugares.lugar_id"), nullable=False)
     color = Column(String(7), default="#3498db")
 
+class Tarifa(Base):
+    __tablename__ = "tarifas"
+    __table_args__ = {"schema": "transporte"}
+    tarifa_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    precio_base = Column(Numeric(8,2), default=0.0)
+    costo_por_km = Column(Numeric(8,2), default=0.0)
+    activa = Column(Boolean, default=True)
+    
+    # Campos de métodos de pago
+    acepta_efectivo = Column(Boolean, default=True)
+    acepta_tarjeta = Column(Boolean, default=False)
+    acepta_tarjeta_especial = Column(Boolean, default=False)
+
 class Ruta(Base):
     __tablename__ = "rutas"
     __table_args__ = (
@@ -35,12 +48,8 @@ class Ruta(Base):
     color = Column(String(7), default="#3498db")
     google_polyline = Column(String, nullable=True)
     
-    # Tarifas y Pagos
-    tipo_tarifa = Column(String(20), default="fija") # fija o por_parada
-    monto_tarifa = Column(Numeric(8,2), default=0.0)
-    acepta_efectivo = Column(Boolean, default=True)
-    acepta_tarjeta = Column(Boolean, default=False)
-    acepta_tarjeta_especial = Column(Boolean, default=False)
+    # Relación con Tarifas
+    tarifa_id = Column(UUID(as_uuid=True), ForeignKey("transporte.tarifas.tarifa_id"), nullable=True)
 
 class RutaParada(Base):
     __tablename__ = "rutas_paradas"
