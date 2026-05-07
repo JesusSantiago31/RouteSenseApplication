@@ -29,7 +29,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
             Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
             Math.sin(dLon/2) * Math.sin(dLon/2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c;
+  return R * c * 1000; // Retornar en METROS
 };
 
 const LIBRARIES = ['geometry'];
@@ -71,7 +71,6 @@ export default function UserHome() {
         
         // Cargar datos de usuario
         const profile = await userService.getProfile();
-        console.log("Perfil cargado:", profile);
         if (profile) {
           setUserData(profile);
           const requests = await trackingService.getUserRequests(profile.user_id || profile.id);
@@ -143,9 +142,50 @@ export default function UserHome() {
 
   const requestStop = async (tipo = 'subir') => {
     if (!selectedStop || !userData) return;
+    
+    // Nueva limitante: No permitir múltiples solicitudes simultáneas
+    if (userRequest) {
+      alert("Ya tienes una solicitud activa. Por favor cancélala desde el panel inferior antes de realizar una nueva.");
+      return;
+    }
+
     try {
-      // Intentar encontrar el bus asociado a la parada o el primero disponible
-      const busId = selectedBusData?.bus_id || busPositions[0]?.bus_id || '00000000-0000-0000-0000-000000000000';
+      // 0. Validar Proximidad (Geofencing)
+      if (!currentPos) {
+        alert("Necesitamos tu ubicación GPS para validar la solicitud.");
+        return;
+      }
+
+      // 1. Intentar buscar bus por ruta exacta (Comparación robusta)
+      const stopRouteId = String(selectedStop.ruta_id || activeRouteId || '').toLowerCase();
+      let busOfRoute = busPositions.find(b => String(b.ruta_id || '').toLowerCase() === stopRouteId);
+      
+      // 2. Fallback: Si no hay bus en esa ruta, tomar el primer bus disponible (mejor que fallar)
+      if (!busOfRoute && busPositions.length > 0) {
+        busOfRoute = busPositions[0];
+      }
+
+      if (!busOfRoute) {
+        alert("Lo sentimos, no detectamos ningún autobús activo en el sistema. Asegúrate de que el conductor haya iniciado su ruta.");
+        return;
+      }
+
+      // 3. Validar Distancia según el tipo de solicitud
+      if (tipo === 'subir') {
+        const distToStop = calculateDistance(currentPos.lat, currentPos.lng, parseFloat(selectedStop.latitud), parseFloat(selectedStop.longitud));
+        if (distToStop > 300) {
+          alert(`Estás demasiado lejos de la parada (${distToStop.toFixed(0)}m). Debes estar a menos de 300m para solicitar el abordaje.`);
+          return;
+        }
+      } else if (tipo === 'bajar') {
+        const distToBus = calculateDistance(currentPos.lat, currentPos.lng, parseFloat(busOfRoute.latitud), parseFloat(busOfRoute.longitud));
+        if (distToBus > 200) {
+          alert(`Para solicitar bajada debes estar dentro del autobús. (Distancia actual: ${distToBus.toFixed(0)}m)`);
+          return;
+        }
+      }
+
+      const busId = busOfRoute.bus_id;
 
       const req = await trackingService.requestStop(
         userData.user_id || userData.id,
@@ -186,13 +226,10 @@ export default function UserHome() {
   };
 
   const handleBusClick = async (pos) => {
-    console.log("Bus clicked:", pos.bus_id, "Current buses in state:", allBuses.length);
-    
-    // 1. EXTRAER INFORMACIÓN DESDE EL VÍNCULO DEL CONDUCTOR (Como en el panel de conductor)
+    // 1. EXTRAER INFORMACIÓN DESDE EL VÍNCULO DEL CONDUCTOR
     let busInfo = allBuses.find(b => String(b.bus_id).toLowerCase() === String(pos.bus_id).toLowerCase());
     
     if (!busInfo && pos.conductor_id) {
-      console.log("Buscando bus por vínculo de conductor:", pos.conductor_id);
       busInfo = await fleetService.getBusByConductor(pos.conductor_id);
     }
     
@@ -303,6 +340,14 @@ export default function UserHome() {
   return (
     <div className="user-home">
       
+      {/* Botón Flotante de Menú para Móvil */}
+      <button 
+        className="mobile-menu-toggle"
+        onClick={() => setIsSidebarOpen(true)}
+      >
+        <Menu size={24} />
+      </button>
+
       {/* Sidebar de Rutas */}
       <aside className={`route-sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
@@ -468,6 +513,7 @@ export default function UserHome() {
                 <div className="stop-info-window">
                   <h4>{selectedStop.nombre}</h4>
                   <p>¿Qué acción deseas realizar?</p>
+                  <p className="stop-tip">💡 Solicita tu bajada con anticipación para avisar al conductor.</p>
                   <div className="stop-action-btns">
                     <button 
                       onClick={() => requestStop('subir')} 

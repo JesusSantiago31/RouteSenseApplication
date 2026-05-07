@@ -20,8 +20,8 @@ def update_position(db: Session, data: PosicionCreate):
 from datetime import datetime, timedelta
 
 def get_all_positions(db: Session):
-    # Umbral de 15 segundos para máxima precisión en tiempo real
-    umbral = datetime.utcnow() - timedelta(seconds=15)
+    # Umbral de 30 segundos para mayor estabilidad (evita que el bus desaparezca por lag)
+    umbral = datetime.utcnow() - timedelta(seconds=30)
     return db.query(Posicion).filter(Posicion.ultima_actualizacion >= umbral).all()
 
 # Solicitudes de parada

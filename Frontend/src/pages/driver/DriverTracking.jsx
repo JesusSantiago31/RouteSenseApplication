@@ -3,12 +3,13 @@ import { GoogleMap, useJsApiLoader, Polyline, Marker } from '@react-google-maps/
 import { trackingService } from '../../services/trackingService';
 import { fleetService } from '../../services/fleetService';
 import { routeService } from '../../services/routeService';
-import { MapPin, Navigation, Bus, AlertCircle, Play, Square, User as UserIcon, Clock, MapPinned, LocateFixed, Bell, X, UserPlus, UserMinus } from 'lucide-react';
+import { MapPin, Navigation, Bus, AlertCircle, Play, Square, User as UserIcon, Clock, MapPinned, LocateFixed, Bell, X, UserPlus, UserMinus, ChevronUp, ChevronDown } from 'lucide-react';
 
 const mapContainerStyle = { width: '100%', height: '100%' };
+const libraries = ['places', 'geometry'];
 const mapOptions = {
   disableDefaultUI: true,
-  zoomControl: false, // Quitamos zoom control nativo para limpiar la UI móvil
+  zoomControl: false,
   styles: [
     { "featureType": "all", "elementType": "labels.text.fill", "stylers": [{"color": "#7c93a3"}] },
     { "featureType": "all", "elementType": "labels.text.stroke", "stylers": [{"visibility": "off"}] },
@@ -40,7 +41,7 @@ export default function DriverTracking() {
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-    libraries: ['geometry']
+    libraries
   });
 
   const onMapLoad = useCallback((map) => {
@@ -53,7 +54,6 @@ export default function DriverTracking() {
       if (!driverData) return;
       setDriver(driverData);
       
-      // Ubicación inicial inmediata
       if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(
           (p) => {
@@ -61,7 +61,7 @@ export default function DriverTracking() {
             setCurrentPos(pos);
             if (mapRef.current) mapRef.current.panTo(pos);
           },
-          (err) => console.log("GPS inicial denegado:", err),
+          (err) => {},
           { enableHighAccuracy: true }
         );
       }
@@ -76,7 +76,6 @@ export default function DriverTracking() {
           }
         }
       } catch (err) { 
-        console.error("Error initData:", err);
         setError("Error al sincronizar con tu unidad."); 
       }
       finally { setLoading(false); }
@@ -86,6 +85,7 @@ export default function DriverTracking() {
 
   const [stopRequests, setStopRequests] = useState([]);
   const [isRequestsOpen, setIsRequestsOpen] = useState(false);
+  const [isPanelExpanded, setIsPanelExpanded] = useState(true);
 
   useEffect(() => {
     let watchId = null;
@@ -114,7 +114,7 @@ export default function DriverTracking() {
           const reqs = await trackingService.getBusRequests(bus.bus_id);
           setStopRequests(reqs);
         } catch (err) {
-          console.error("Error cargando solicitudes:", err);
+          // Error silencioso en polling
         }
       };
       fetchRequests();
@@ -122,6 +122,18 @@ export default function DriverTracking() {
     }
     return () => interval && clearInterval(interval);
   }, [isTracking, bus]);
+
+  const groupedRequests = useMemo(() => {
+    const groups = {};
+    stopRequests.forEach(req => {
+      const key = `${req.parada_id}-${req.tipo}`;
+      if (!groups[key]) {
+        groups[key] = { ...req, count: 0 };
+      }
+      groups[key].count += 1;
+    });
+    return Object.values(groups);
+  }, [stopRequests]);
 
   const recenterMap = () => {
     if (mapRef.current && currentPos) {
@@ -281,16 +293,21 @@ export default function DriverTracking() {
               <button onClick={() => setIsRequestsOpen(false)} className="text-slate-400 hover:text-white"><X size={18}/></button>
             </div>
             <div className="max-h-60 overflow-y-auto p-3 space-y-2">
-              {stopRequests.map((req) => {
-                const stop = route?.paradas?.find(s => s.parada_id === req.parada_id);
+              {groupedRequests.map((group) => {
+                const stop = route?.paradas?.find(s => s.parada_id === group.parada_id);
                 return (
-                  <div key={req.solicitud_id} className="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${req.tipo === 'subir' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                      {req.tipo === 'subir' ? <UserPlus size={18}/> : <UserMinus size={18}/>}
+                  <div key={`${group.parada_id}-${group.tipo}`} className="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-3 relative">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${group.tipo === 'subir' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                      {group.tipo === 'subir' ? <UserPlus size={18}/> : <UserMinus size={18}/>}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{req.tipo === 'subir' ? 'Esperando subir' : 'Solicita bajar'}</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">
+                        {group.tipo === 'subir' ? 'Esperando subir' : 'Solicita bajar'}
+                      </p>
                       <h4 className="text-xs font-bold text-slate-800 truncate">{stop?.nombre || 'Parada desconocida'}</h4>
+                    </div>
+                    <div className="bg-slate-900 text-white w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black shadow-lg">
+                      {group.count}
                     </div>
                   </div>
                 );
@@ -299,100 +316,151 @@ export default function DriverTracking() {
           </div>
         )}
 
-        {/* Panel Inferior de Navegación - Responsivo */}
         <div className="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6 z-20">
-          <div className="bg-white/95 backdrop-blur-xl rounded-[30px] md:rounded-[45px] p-5 md:p-7 shadow-2xl border border-white/50 max-w-5xl mx-auto flex flex-col lg:flex-row gap-5 md:gap-8">
+          <div className="bg-white/95 backdrop-blur-xl rounded-[30px] md:rounded-[45px] shadow-2xl border border-white/50 max-w-5xl mx-auto overflow-hidden transition-all duration-300">
             
-            {/* Lado Izquierdo: Bus y Estado */}
-            <div className="flex-1 space-y-4 md:space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 md:gap-4">
-                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl text-white shadow-xl flex items-center justify-center" style={{ backgroundColor: bus?.color || '#e67e22' }}>
-                    <Bus size={24} className="md:w-7 md:h-7" />
-                  </div>
-                  <div>
-                    <h3 className="font-black text-slate-800 text-base md:text-lg uppercase leading-none mb-1">{bus?.placa || 'Autobús'}</h3>
-                    <p className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">{bus?.empresa || 'Empresa'}</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setIsTracking(!isTracking)} 
-                  className={`px-6 md:px-10 py-3 md:py-4 rounded-2xl md:rounded-3xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all shadow-xl ${
-                    isTracking 
-                      ? 'bg-red-500 text-white shadow-red-500/20' 
-                      : 'bg-primary text-white shadow-primary/20 hover:scale-105'
-                  }`}
-                >
-                  {isTracking ? 'Parar' : 'Iniciar'}
-                </button>
-              </div>
+            <button 
+              onClick={() => setIsPanelExpanded(!isPanelExpanded)}
+              className="w-full py-2 flex items-center justify-center text-slate-300 lg:hidden border-b border-slate-50"
+            >
+              {isPanelExpanded ? <ChevronDown size={20}/> : <ChevronUp size={20}/>}
+            </button>
+
+            <div className={`p-5 md:p-7 flex flex-col lg:flex-row gap-5 md:gap-8 ${!isPanelExpanded ? 'hidden lg:flex' : 'flex'}`}>
               
-              <div className="p-4 rounded-2xl md:rounded-[30px] border border-slate-100 relative overflow-hidden bg-slate-50/50">
-                <div className="absolute top-0 left-0 w-1.5 h-full" style={{ backgroundColor: route?.ruta?.color || '#005cc8' }}></div>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-2">Servicio</p>
-                    <h4 className="font-black text-slate-800 text-sm md:text-base truncate ml-2">{route?.ruta?.nombre || 'Buscando Ruta...'}</h4>
-                  </div>
-                  {stopRequests.length > 0 && (
-                    <div className="bg-orange-500 text-white px-3 py-1 rounded-full flex items-center gap-1.5 animate-pulse shadow-lg shadow-orange-500/20">
-                      <Bell size={12} fill="white" />
-                      <span className="text-[10px] font-black uppercase tracking-tighter">{stopRequests.length} Avisos</span>
+              <div className="flex-1 space-y-4 md:space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 md:gap-4">
+                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl text-white shadow-xl flex items-center justify-center" style={{ backgroundColor: bus?.color || '#e67e22' }}>
+                      <Bus size={24} className="md:w-7 md:h-7" />
                     </div>
-                  )}
+                    <div>
+                      <h3 className="font-black text-slate-800 text-base md:text-lg uppercase leading-none mb-1">{bus?.placa || 'Autobús'}</h3>
+                      <p className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">{bus?.empresa || 'Empresa'}</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setIsTracking(!isTracking)} 
+                    className={`px-6 md:px-10 py-3 md:py-4 rounded-2xl md:rounded-3xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all shadow-xl ${
+                      isTracking 
+                        ? 'bg-red-500 text-white shadow-red-500/20' 
+                        : 'bg-primary text-white shadow-primary/20 hover:scale-105'
+                    }`}
+                  >
+                    {isTracking ? 'Parar' : 'Iniciar'}
+                  </button>
+                </div>
+                
+                <div className="p-4 rounded-2xl md:rounded-[30px] border border-slate-100 relative overflow-hidden bg-slate-50/50">
+                  <div className="absolute top-0 left-0 w-1.5 h-full" style={{ backgroundColor: route?.ruta?.color || '#005cc8' }}></div>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-2">Servicio</p>
+                      <h4 className="font-black text-slate-800 text-sm md:text-base truncate ml-2">{route?.ruta?.nombre || 'Buscando Ruta...'}</h4>
+                    </div>
+                    {stopRequests.length > 0 && (
+                      <div className="bg-orange-500 text-white px-3 py-1 rounded-full flex items-center gap-1.5 animate-pulse shadow-lg shadow-orange-500/20">
+                        <Bell size={12} fill="white" />
+                        <span className="text-[10px] font-black uppercase tracking-tighter">{stopRequests.length} Avisos</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Divisor Visual */}
-            <div className="hidden lg:block w-px bg-slate-100/80" />
+              <div className="hidden lg:block w-px bg-slate-100/80" />
 
-            {/* Lado Derecho: Próxima Parada y Destino */}
-            <div className="flex-[1.5] grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-              {nextStopInfo ? (
-                <>
-                  <div className="space-y-3 md:space-y-4 flex flex-col justify-center">
-                    <div className="flex items-center gap-3 md:gap-4">
-                      <div className="p-2.5 md:p-3.5 bg-primary/10 rounded-xl md:rounded-2xl text-primary shadow-inner"><MapPinned size={18} className="md:w-6 md:h-6" /></div>
-                      <div>
-                        <p className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Próxima</p>
-                        <h4 className="font-black text-slate-800 text-sm md:text-base leading-tight">{nextStopInfo.nombre}</h4>
+              <div className="flex-[1.5] grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                {nextStopInfo ? (
+                  <>
+                    <div className="space-y-3 md:space-y-4 flex flex-col justify-center">
+                      <div className="flex items-center gap-3 md:gap-4">
+                        <div className="p-2.5 md:p-3.5 bg-primary/10 rounded-xl md:rounded-2xl text-primary shadow-inner"><MapPinned size={18} className="md:w-6 md:h-6" /></div>
+                        <div>
+                          <p className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Próxima</p>
+                          <h4 className="font-black text-slate-800 text-sm md:text-base leading-tight">{nextStopInfo.nombre}</h4>
+                        </div>
+                      </div>
+                      <div className="flex gap-4 md:gap-6 pl-1 md:pl-2">
+                         <div className="flex items-center gap-2">
+                           <Navigation size={14} className="text-slate-300 md:w-4 md:h-4" />
+                           <p className="font-black text-xs md:text-sm text-slate-600">{nextStopInfo.dist.toFixed(1)} <span className="text-[8px] md:text-[10px] text-slate-400 uppercase">KM</span></p>
+                         </div>
+                         <div className="flex items-center gap-2">
+                           <Clock size={14} className="text-slate-300 md:w-4 md:h-4" />
+                           <p className="font-black text-xs md:text-sm text-slate-600">{nextStopInfo.eta} <span className="text-[8px] md:text-[10px] text-slate-400 uppercase">MIN</span></p>
+                         </div>
                       </div>
                     </div>
-                    <div className="flex gap-4 md:gap-6 pl-1 md:pl-2">
-                       <div className="flex items-center gap-2">
-                         <Navigation size={14} className="text-slate-300 md:w-4 md:h-4" />
-                         <p className="font-black text-xs md:text-sm text-slate-600">{nextStopInfo.dist.toFixed(1)} <span className="text-[8px] md:text-[10px] text-slate-400 uppercase">KM</span></p>
-                       </div>
-                       <div className="flex items-center gap-2">
-                         <Clock size={14} className="text-slate-300 md:w-4 md:h-4" />
-                         <p className="font-black text-xs md:text-sm text-primary">{nextStopInfo.eta} <span className="text-[8px] md:text-[10px] text-primary/60 uppercase">MIN</span></p>
-                       </div>
+                    
+                    <div className="p-4 rounded-2xl md:rounded-[30px] bg-slate-900 text-white flex flex-col justify-center">
+                      <p className="text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Destino Final</p>
+                      <h4 className="font-black text-sm md:text-base leading-tight">{route?.paradas?.[route.paradas.length-1]?.nombre || '---'}</h4>
                     </div>
+                  </>
+                ) : (
+                  <div className="col-span-2 flex items-center justify-center p-8 text-slate-300">
+                    <p className="font-black uppercase text-[10px] tracking-widest">Calculando ruta...</p>
                   </div>
-
-                  <div className="bg-slate-900 rounded-[25px] md:rounded-[35px] p-4 md:p-6 text-white flex flex-col justify-center relative overflow-hidden group shadow-2xl min-h-[90px]">
-                    <div className="absolute top-0 right-0 w-16 h-16 md:w-24 md:h-24 bg-white/5 rounded-full -mr-8 -mt-8 md:-mr-12 md:-mt-12 transition-transform group-hover:scale-150" />
-                    <p className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1 relative z-10">Destino Final</p>
-                    <h4 className="font-black text-xs md:text-sm tracking-tight relative z-10">
-                      {route?.paradas && route.paradas.length > 0 
-                        ? route.paradas[route.paradas.length - 1].nombre 
-                        : 'Final de línea'}
-                    </h4>
-                    <div className="mt-2 md:mt-3 w-10 md:w-12 h-1 rounded-full bg-white/20 relative z-10" style={{ backgroundColor: (route?.ruta?.color || '#005cc8') + '50' }}>
-                       <div className="h-full rounded-full" style={{ width: '40%', backgroundColor: route?.ruta?.color || '#005cc8' }}></div>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="col-span-1 sm:col-span-2 flex flex-col items-center justify-center text-slate-300 p-6 border-2 border-dashed border-slate-100 rounded-[25px] md:rounded-[35px]">
-                  <AlertCircle size={24} className="mb-2 opacity-20" />
-                  <p className="text-[9px] md:text-[11px] font-black uppercase tracking-widest text-center italic">
-                    {isTracking ? "Calculando ruta..." : "Inicia el servicio para ver el trayecto"}
-                  </p>
-                </div>
-              )}
+                )}
+              </div>
             </div>
+
+            {!isPanelExpanded && (
+              <div className="lg:hidden p-4 flex justify-between items-center bg-white">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl text-white flex items-center justify-center shadow-lg" style={{ backgroundColor: bus?.color || '#005cc8' }}>
+                    <MapPinned size={20} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-black text-slate-800 text-xs truncate uppercase tracking-tighter">Prox: {nextStopInfo?.nombre || '---'}</h4>
+                    <div className="flex gap-3">
+                       <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{nextStopInfo?.dist.toFixed(1) || '0'} KM</p>
+                       <p className="text-[9px] font-bold text-primary uppercase tracking-widest">{nextStopInfo?.eta || '--'} MIN</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {nextStopInfo && (
+                    <div className="flex gap-1">
+                      {/* Contador de Subida para la PRÓXIMA parada */}
+                      <div className={`flex items-center gap-1 px-2 py-1.5 rounded-lg border ${
+                        stopRequests.some(r => r.parada_id === nextStopInfo.parada_id && r.tipo === 'subir')
+                          ? 'bg-green-50 border-green-200 text-green-600 animate-pulse'
+                          : 'bg-slate-50 border-slate-100 text-slate-300'
+                      }`}>
+                        <UserPlus size={12} />
+                        <span className="text-[10px] font-black">
+                          {stopRequests.filter(r => r.parada_id === nextStopInfo.parada_id && r.tipo === 'subir').length}
+                        </span>
+                      </div>
+
+                      {/* Contador de Bajada para la PRÓXIMA parada */}
+                      <div className={`flex items-center gap-1 px-2 py-1.5 rounded-lg border ${
+                        stopRequests.some(r => r.parada_id === nextStopInfo.parada_id && r.tipo === 'bajar')
+                          ? 'bg-red-50 border-red-200 text-red-600 animate-pulse'
+                          : 'bg-slate-50 border-slate-100 text-slate-300'
+                      }`}>
+                        <UserMinus size={12} />
+                        <span className="text-[10px] font-black">
+                          {stopRequests.filter(r => r.parada_id === nextStopInfo.parada_id && r.tipo === 'bajar').length}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <button 
+                    onClick={() => setIsTracking(!isTracking)} 
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-all active:scale-90 ${
+                      isTracking ? 'bg-red-500 text-white shadow-red-500/20' : 'bg-primary text-white shadow-primary/20'
+                    }`}
+                  >
+                    {isTracking ? <Square size={16} fill="white" /> : <Play size={16} fill="white" />}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </main>
