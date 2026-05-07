@@ -19,33 +19,47 @@ export default function StopForm({ show, onClose, onSubmit, newStop, setNewStop,
             <X size={20} />
           </button>
        </div>
-       
-       <form onSubmit={onSubmit} className="flex flex-col gap-6">
-            <div className="flex gap-4 items-end">
-             <div className="flex-1">
-                <label className="text-[10px] font-black text-primary mb-2.5 block tracking-[0.2em] uppercase opacity-80">Nombre de la Ruta / Estación</label>
-                <div className="relative group">
-                   <Tag size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" />
+              <form onSubmit={onSubmit} className="flex flex-col gap-6">
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+              <div className="md:col-span-2">
+                 <label className="text-[10px] font-black text-primary mb-2.5 block tracking-[0.2em] uppercase opacity-80">Nombre de la Parada / Estación</label>
+                 <div className="relative group">
+                    <Tag size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" />
+                    <input 
+                     className="w-full pl-12 pr-4 py-4 bg-slate-50/50 border border-slate-100 rounded-[20px] font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:bg-white transition-all placeholder:text-slate-300 shadow-sm" 
+                     value={newStop.nombre} 
+                     onChange={e => setNewStop({...newStop, nombre: e.target.value})} 
+                     required 
+                     placeholder="Ej. Línea 5 - Estación Central" 
+                    />
+                 </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-primary mb-2.5 block tracking-[0.2em] uppercase opacity-80">Color y HEX</label>
+                <div className="flex items-center gap-2 bg-slate-50/50 border border-slate-100 rounded-[20px] p-1.5 pr-4 shadow-sm">
+                   <div className="relative w-10 h-10 rounded-xl border-2 border-white shadow-sm overflow-hidden flex-shrink-0" style={{ backgroundColor: newStop.color }}>
+                      <input 
+                         type="color" 
+                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                         value={newStop.color} 
+                         onChange={e => setNewStop({...newStop, color: e.target.value})} 
+                      />
+                   </div>
                    <input 
-                    className="w-full pl-12 pr-4 py-4 bg-slate-50/50 border border-slate-100 rounded-[20px] font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:bg-white transition-all placeholder:text-slate-300 shadow-sm" 
-                    value={newStop.nombre} 
-                    onChange={e => setNewStop({...newStop, nombre: e.target.value})} 
-                    required 
-                    placeholder="Ej. Línea 5 - Estación Central" 
+                      type="text" 
+                      className="flex-1 bg-transparent border-none font-black text-[11px] text-slate-700 focus:outline-none uppercase tracking-tighter"
+                      value={newStop.color || '#3498DB'}
+                      maxLength={7}
+                      onChange={e => {
+                        const val = e.target.value;
+                        if (val.startsWith('#') || val === '') {
+                          setNewStop({...newStop, color: val});
+                        }
+                      }}
                    />
                 </div>
-             </div>
-             <div className="w-20">
-                <label className="text-[10px] font-black text-primary mb-2.5 block text-center uppercase tracking-tighter opacity-80">Color</label>
-                <div className="relative w-full h-14 rounded-[20px] border-4 border-white shadow-lg ring-1 ring-slate-100 overflow-hidden cursor-pointer hover:scale-105 transition-transform" style={{ backgroundColor: newStop.color }}>
-                   <input 
-                      type="color" 
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
-                      value={newStop.color} 
-                      onChange={e => setNewStop({...newStop, color: e.target.value})} 
-                   />
-                </div>
-             </div>
+              </div>
            </div>
 
           <div className="grid grid-cols-2 gap-4">

@@ -20,10 +20,9 @@ export default function RouteForm({ show, onClose, onSubmit, onDelete, routeData
             <X size={20} />
           </button>
        </div>
-       
-       <form onSubmit={onSubmit} className="space-y-8">
-          <div className="flex gap-4 items-end">
-             <div className="flex-1">
+            <form onSubmit={onSubmit} className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+             <div className="md:col-span-2">
                 <label className="text-[10px] font-black text-primary mb-2.5 block tracking-[0.2em] uppercase opacity-80">Nombre de la Ruta</label>
                 <div className="relative group">
                    <Activity size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors" />
@@ -36,14 +35,29 @@ export default function RouteForm({ show, onClose, onSubmit, onDelete, routeData
                    />
                 </div>
              </div>
-             <div className="w-20">
-                <label className="text-[10px] font-black text-primary mb-2.5 block text-center uppercase tracking-tighter opacity-80">Color</label>
-                <div className="relative w-full h-14 rounded-[20px] border-4 border-white shadow-lg ring-1 ring-slate-100 overflow-hidden cursor-pointer hover:scale-105 transition-transform" style={{ backgroundColor: routeData.color }}>
+             
+             <div className="space-y-2">
+                <label className="text-[10px] font-black text-primary mb-2.5 block tracking-[0.2em] uppercase opacity-80">Color y HEX</label>
+                <div className="flex items-center gap-2 bg-slate-50/50 border border-slate-100 rounded-[20px] p-1.5 pr-4 shadow-sm">
+                   <div className="relative w-10 h-10 rounded-xl border-2 border-white shadow-sm overflow-hidden flex-shrink-0" style={{ backgroundColor: routeData.color }}>
+                      <input 
+                         type="color" 
+                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                         value={routeData.color} 
+                         onChange={e => setRouteData({...routeData, color: e.target.value})} 
+                      />
+                   </div>
                    <input 
-                      type="color" 
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
-                      value={routeData.color} 
-                      onChange={e => setRouteData({...routeData, color: e.target.value})} 
+                      type="text" 
+                      className="flex-1 bg-transparent border-none font-black text-[11px] text-slate-700 focus:outline-none uppercase tracking-tighter"
+                      value={routeData.color || '#3498DB'}
+                      maxLength={7}
+                      onChange={e => {
+                        const val = e.target.value;
+                        if (val.startsWith('#') || val === '') {
+                          setRouteData({...routeData, color: val});
+                        }
+                      }}
                    />
                 </div>
              </div>

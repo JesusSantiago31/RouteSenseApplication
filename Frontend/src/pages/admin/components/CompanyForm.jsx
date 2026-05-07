@@ -82,8 +82,20 @@ export default function CompanyForm({ show, onClose, onSubmit, companyData, setC
                   style={{ backgroundColor: companyData?.color || '#3498db' }}
                 />
               </div>
-              <div className="flex-1 px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                {companyData?.color || '#3498DB'}
+              <div className="flex-1 relative">
+                <input 
+                  type="text" 
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-[10px] font-black text-slate-700 uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all"
+                  placeholder="#000000"
+                  maxLength={7}
+                  value={companyData?.color || '#3498DB'}
+                  onChange={e => {
+                    const val = e.target.value;
+                    if (val.startsWith('#') || val === '') {
+                      setCompanyData({...companyData, color: val});
+                    }
+                  }}
+                />
               </div>
             </div>
           </div>

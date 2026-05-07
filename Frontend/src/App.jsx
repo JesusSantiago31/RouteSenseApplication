@@ -9,6 +9,8 @@ import UserHome from './pages/user/Home';
 import DriverTracking from './pages/driver/DriverTracking';
 import ProtectedRoute from './routes/ProtectedRoute';
 
+import { Toaster } from 'react-hot-toast';
+
 export default function App() {
   const isAdmin = !!localStorage.getItem('routesense_admin_token');
   const isUser = !!localStorage.getItem('routesense_user_token');
@@ -16,6 +18,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <Toaster position="top-right" reverseOrder={false} />
       <Routes>
         {/* Redirección inicial */}
         <Route path="/" element={<Navigate to="/login/user" replace />} />
