@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, User, Navigation, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
 import { userService } from '../../services/userService';
-import logo from '../../../AppArchitecture/Logo App.png';
+import logo from '../../assets/logo.png';
 import './AuthUser.css';
 
 export default function RegisterUser() {

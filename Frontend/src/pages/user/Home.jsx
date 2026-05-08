@@ -4,7 +4,7 @@ import { routeService } from '../../services/routeService';
 import { trackingService } from '../../services/trackingService';
 import { fleetService } from '../../services/fleetService';
 import { userService } from '../../services/userService';
-import logo from '../../../AppArchitecture/Logo App.png';
+import logo from '../../assets/logo.png';
 import { 
   MapPin, Bus, Clock, Layers, LocateFixed, Search, X, 
   CheckCircle2, AlertCircle, MapPinned, User, Bell, LogOut, 
