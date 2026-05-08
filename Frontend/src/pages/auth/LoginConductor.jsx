@@ -95,7 +95,7 @@ export default function LoginConductor() {
         </form>
         
         <p style={{ marginTop: '30px', fontSize: '0.8rem', color: '#cbd5e0' }}>
-          &copy; 2026 RouteSense Logistics System
+           &copy; Desarrollado por Jesus Santiago | 3801 | Sistemas Distribuidos
         </p>
       </div>
     </div>

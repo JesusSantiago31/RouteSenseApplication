@@ -4,7 +4,7 @@ import {
   Map as MapIcon, Truck, Building2, User, UserCheck, Users,
   ChevronRight, MapPinned, ChevronDown
 } from 'lucide-react';
-import logo from '../../../assets/logo.png';
+import logo from '../../../../AppArchitecture/Logo App.png';
 
 const MultiSelect = ({ options, selected, onChange, placeholder, renderOption }) => {
   const [open, setOpen] = useState(false);
