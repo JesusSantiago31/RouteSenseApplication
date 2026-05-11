@@ -19,12 +19,17 @@
 
 .login-logo {
   display: inline-flex;
-  background: #005cc8;
-  color: white;
-  padding: 14px;
-  border-radius: 16px;
+  background: white;
+  padding: 12px;
+  border-radius: 20px;
   margin-bottom: 24px;
-  box-shadow: 0 10px 20px rgba(0, 92, 200, 0.2);
+  box-shadow: 0 15px 35px rgba(0, 92, 200, 0.1);
+  border: 1px solid #f1f5f9;
+  width: 64px;
+  height: 64px;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-3deg);
 }
 
 .login-header h2 {

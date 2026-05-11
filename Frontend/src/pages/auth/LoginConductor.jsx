@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Lock, Bus, IdCard, AlertCircle } from 'lucide-react';
 import { fleetService } from '../../services/fleetService';
+import logo from '../../assets/logo.png';
 import './LoginAdmin.css';
 
 export default function LoginConductor() {
@@ -30,8 +31,8 @@ export default function LoginConductor() {
   return (
     <div className="login-container">
       <div className="login-card">
-        <div className="login-logo" style={{ background: '#e67e22' }}>
-          <Bus size={32} />
+        <div className="login-logo">
+          <img src={logo} alt="RouteSense" className="w-full h-full object-contain" />
         </div>
         
         <div className="login-header">

@@ -54,109 +54,99 @@ export default function RegisterUser() {
   }
 
   return (
-    <div className="auth-user-page">
-      <div className="auth-bg-blob auth-bg-blob-1"></div>
-      <div className="auth-bg-blob auth-bg-blob-2"></div>
-
-      <div className="auth-container">
-        <div className="auth-card">
-          <div className="auth-header">
-            <div className="auth-logo">
-              <img src={logo} alt="RouteSense" className="w-full h-full object-contain" />
-            </div>
-            <h1>Únete a RouteSense</h1>
-            <p>Crea tu cuenta para empezar a viajar mejor</p>
-          </div>
-
-          {error && (
-            <div className="auth-error animate-shake">
-              <AlertCircle size={18} />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleRegister} className="auth-form">
-            <div className="auth-row">
-              <div className="auth-input-group">
-                <label>Nombre</label>
-                <div className="auth-input-wrapper">
-                  <User size={18} />
-                  <input 
-                    name="nombre"
-                    type="text" 
-                    placeholder="Juan" 
-                    value={formData.nombre}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-              </div>
-              <div className="auth-input-group">
-                <label>Apellido</label>
-                <div className="auth-input-wrapper">
-                  <User size={18} />
-                  <input 
-                    name="apellido"
-                    type="text" 
-                    placeholder="Pérez" 
-                    value={formData.apellido}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="auth-input-group">
-              <label>Correo Electrónico</label>
-              <div className="auth-input-wrapper">
-                <Mail size={18} />
-                <input 
-                  name="email"
-                  type="email" 
-                  placeholder="ejemplo@email.com" 
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="auth-input-group">
-              <label>Contraseña</label>
-              <div className="auth-input-wrapper">
-                <Lock size={18} />
-                <input 
-                  name="password"
-                  type="password" 
-                  placeholder="Mínimo 8 caracteres" 
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  minLength={8}
-                />
-              </div>
-            </div>
-
-            <button type="submit" className="auth-submit" disabled={loading}>
-              {loading ? (
-                <div className="loader-small"></div>
-              ) : (
-                <>
-                  <span>Crear Cuenta</span>
-                  <ArrowRight size={18} />
-                </>
-              )}
-            </button>
-          </form>
-
-          <div className="auth-footer">
-            <p>¿Ya tienes cuenta?</p>
-            <Link to="/login/user" className="auth-link">
-              <span>Inicia Sesión</span>
-            </Link>
-          </div>
+    <div className="login-container">
+      <div className="login-card" style={{ maxWidth: '500px' }}>
+        <div className="login-logo">
+          <img src={logo} alt="RouteSense" className="w-full h-full object-contain" />
         </div>
+        
+        <div className="login-header">
+          <h2>Únete a RouteSense</h2>
+          <p>Crea tu cuenta para empezar a viajar mejor</p>
+        </div>
+
+        {error && (
+          <div className="error-message">
+            <AlertCircle size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleRegister}>
+          <div className="auth-row">
+            <div className="input-group">
+              <label>Nombre</label>
+              <div className="input-wrapper">
+                <User size={20} />
+                <input 
+                  name="nombre"
+                  type="text" 
+                  placeholder="Juan" 
+                  value={formData.nombre}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+            <div className="input-group">
+              <label>Apellido</label>
+              <div className="input-wrapper">
+                <User size={20} />
+                <input 
+                  name="apellido"
+                  type="text" 
+                  placeholder="Pérez" 
+                  value={formData.apellido}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="input-group">
+            <label>Correo Electrónico</label>
+            <div className="input-wrapper">
+              <Mail size={20} />
+              <input 
+                name="email"
+                type="email" 
+                placeholder="usuario@routesense.app" 
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="input-group">
+            <label>Contraseña</label>
+            <div className="input-wrapper">
+              <Lock size={20} />
+              <input 
+                name="password"
+                type="password" 
+                placeholder="Mínimo 8 caracteres" 
+                value={formData.password}
+                onChange={handleChange}
+                required
+                minLength={8}
+              />
+            </div>
+          </div>
+
+          <button type="submit" className="login-button" disabled={loading}>
+            {loading ? 'Creando cuenta...' : 'Crear Cuenta'}
+          </button>
+        </form>
+
+        <div className="auth-switch-footer" style={{ marginTop: '20px', textAlign: 'center' }}>
+          <p style={{ fontSize: '0.9rem', color: '#64748b' }}>¿Ya tienes cuenta? <Link to="/login/user" style={{ color: '#005cc8', fontWeight: 'bold' }}>Inicia Sesión</Link></p>
+        </div>
+        
+        <p style={{ marginTop: '30px', fontSize: '0.8rem', color: '#cbd5e0', textAlign: 'center' }}>
+          &copy; Desarrollado por Jesus Santiago | 3801 | Sistemas Distribuidos
+        </p>
       </div>
     </div>
   );

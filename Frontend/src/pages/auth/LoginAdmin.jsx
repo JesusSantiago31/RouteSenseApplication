@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Lock, Navigation, AlertCircle } from 'lucide-react';
 import { adminService } from '../../services/adminService';
+import logo from '../../assets/logo.png';
 import './LoginAdmin.css';
 
 export default function LoginAdmin() {
@@ -32,7 +33,7 @@ export default function LoginAdmin() {
     <div className="login-container">
       <div className="login-card">
         <div className="login-logo">
-          <Navigation size={32} />
+          <img src={logo} alt="RouteSense" className="w-full h-full object-contain" />
         </div>
         
         <div className="login-header">

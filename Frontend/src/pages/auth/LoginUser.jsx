@@ -29,77 +29,65 @@ export default function LoginUser() {
   };
 
   return (
-    <div className="auth-user-page">
-      {/* Background Decor */}
-      <div className="auth-bg-blob auth-bg-blob-1"></div>
-      <div className="auth-bg-blob auth-bg-blob-2"></div>
-
-      <div className="auth-container">
-        <div className="auth-card">
-          <div className="auth-header">
-            <div className="auth-logo">
-              <img src={logo} alt="RouteSense" className="w-full h-full object-contain" />
-            </div>
-            <h1>Bienvenido a RouteSense</h1>
-            <p>Tu viaje inteligente comienza aquí</p>
-          </div>
-
-          {error && (
-            <div className="auth-error animate-shake">
-              <AlertCircle size={18} />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleLogin} className="auth-form">
-            <div className="auth-input-group">
-              <label>Correo Electrónico</label>
-              <div className="auth-input-wrapper">
-                <Mail size={18} />
-                <input 
-                  type="email" 
-                  placeholder="ejemplo@email.com" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="auth-input-group">
-              <label>Contraseña</label>
-              <div className="auth-input-wrapper">
-                <Lock size={18} />
-                <input 
-                  type="password" 
-                  placeholder="••••••••" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
-            <button type="submit" className="auth-submit" disabled={loading}>
-              {loading ? (
-                <div className="loader-small"></div>
-              ) : (
-                <>
-                  <span>Ingresar</span>
-                  <ArrowRight size={18} />
-                </>
-              )}
-            </button>
-          </form>
-
-          <div className="auth-footer">
-            <p>¿No tienes cuenta?</p>
-            <Link to="/register" className="auth-link">
-              <UserPlus size={16} />
-              <span>Regístrate gratis</span>
-            </Link>
-          </div>
+    <div className="login-container">
+      <div className="login-card">
+        <div className="login-logo">
+          <img src={logo} alt="RouteSense" className="w-full h-full object-contain" />
         </div>
+        
+        <div className="login-header">
+          <h2>Bienvenido a RouteSense</h2>
+          <p>Tu viaje inteligente comienza aquí</p>
+        </div>
+
+        {error && (
+          <div className="error-message">
+            <AlertCircle size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleLogin}>
+          <div className="input-group">
+            <label>Correo Electrónico</label>
+            <div className="input-wrapper">
+              <Mail size={20} />
+              <input 
+                type="email" 
+                placeholder="usuario@routesense.app" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="input-group">
+            <label>Contraseña</label>
+            <div className="input-wrapper">
+              <Lock size={20} />
+              <input 
+                type="password" 
+                placeholder="••••••••" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <button type="submit" className="login-button" disabled={loading}>
+            {loading ? 'Iniciando sesión...' : 'Ingresar'}
+          </button>
+        </form>
+
+        <div className="auth-switch-footer" style={{ marginTop: '20px', textAlign: 'center' }}>
+          <p style={{ fontSize: '0.9rem', color: '#64748b' }}>¿No tienes cuenta? <Link to="/register" style={{ color: '#005cc8', fontWeight: 'bold' }}>Regístrate gratis</Link></p>
+        </div>
+        
+        <p style={{ marginTop: '30px', fontSize: '0.8rem', color: '#cbd5e0', textAlign: 'center' }}>
+          &copy; Desarrollado por Jesus Santiago | 3801 | Sistemas Distribuidos
+        </p>
       </div>
     </div>
   );

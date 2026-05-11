@@ -351,12 +351,15 @@ export default function UserHome() {
 
       {/* Sidebar de Rutas */}
       <aside className={`route-sidebar ${isSidebarOpen ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <div className="header-title">
-            <img src={logo} alt="RouteSense" className="w-8 h-8 object-contain" />
-            <h3>Rutas Cercanas</h3>
+        <div className="sidebar-brand px-6 py-8 flex items-center gap-4 border-b border-slate-50 bg-gradient-to-br from-white to-slate-50/30 relative">
+          <div className="w-12 h-12 bg-white rounded-2xl shadow-xl shadow-primary/10 p-2 border border-slate-100 flex items-center justify-center transform -rotate-3 hover:rotate-0 transition-transform duration-500">
+            <img src={logo} alt="RouteSense" className="w-full h-full object-contain" />
           </div>
-          <button onClick={() => setIsSidebarOpen(false)} className="close-btn"><X size={20} /></button>
+          <div className="flex flex-col">
+            <h1 className="text-xl font-black text-slate-800 tracking-tight leading-none">RouteSense</h1>
+            <p className="text-[9px] font-black text-primary uppercase tracking-widest opacity-60">Rutas Cercanas</p>
+          </div>
+          <button onClick={() => setIsSidebarOpen(false)} className="close-btn absolute right-4 top-1/2 -translate-y-1/2"><X size={20} /></button>
         </div>
 
         <div className="sidebar-filters">
