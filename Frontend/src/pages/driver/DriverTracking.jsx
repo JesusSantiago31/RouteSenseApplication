@@ -172,7 +172,7 @@ export default function DriverTracking() {
   );
 
   return (
-    <div className="h-screen w-screen bg-slate-900 relative flex flex-col overflow-hidden font-sans">
+    <div className="h-screen w-screen bg-slate-900 relative flex flex-col overflow-hidden">
       
       {/* Header Conductor - Responsivo */}
       <header className="absolute top-4 left-4 md:top-6 md:left-6 z-10 pointer-events-none">

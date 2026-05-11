@@ -334,7 +334,7 @@ export default function MapDashboard() {
   };
 
   return (
-    <div className="h-screen flex bg-slate-50 overflow-hidden font-sans">
+    <div className="h-screen flex bg-slate-50 overflow-hidden">
       <Sidebar 
         rutas={filteredRutas} paradas={filteredParadas} visibleRoutes={visibleRoutes} visibleStops={visibleStops} toggleRouteVisibility={toggleRouteVisibility} toggleStopVisibility={toggleStopVisibility} toggleAllStops={toggleAllStops} onNewRoute={onNewRoute} onNewStop={onNewStop} onDeleteStop={handleDeleteStop}
         filters={filters} setFilters={setFilters} filterOptions={filterOptions}

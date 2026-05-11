@@ -7,7 +7,6 @@
   position: fixed;
   top: 0;
   left: 0;
-  font-family: 'Inter', -apple-system, sans-serif !important;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -435,7 +434,6 @@
 .bus-info-window {
   padding: 8px 4px;
   max-width: 240px;
-  font-family: 'Inter', sans-serif;
 }
 
 .bus-window-header {
