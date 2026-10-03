@@ -21,6 +21,12 @@ Authorization: Bearer <TU_JWT_TOKEN>
 | `GET` | `/admin/auditoria` | Obtiene el historial de logs de eventos y auditoría del sistema. | ✅ |
 | `GET` | `/admin/puntos-config` | Obtiene la regla activa de bonificación de puntos por dinero gastado. | ❌ |
 | `POST` | `/admin/puntos-config` | Crea o actualiza la regla de bonificación de puntos por dinero gastado. | ✅ |
+| `GET` | `/admin/sellos-config` | Obtiene la configuración del sistema de sellos (máximo de sellos, recompensa por canje). | ❌ |
+| `POST` | `/admin/sellos-config` | Configura la meta máxima de sellos y puntos de recompensa. | ✅ |
+| `GET` | `/admin/sellos-imagenes` | Lista las URLs de ImgBB para cada cantidad de sellos (0 a N sellos). | ❌ |
+| `POST` | `/admin/sellos-imagenes` | Registra o actualiza la URL de ImgBB para una cantidad específica de sellos. | ✅ |
+| `POST` | `/admin/sellos-imagenes/batch` | Actualiza múltiples URLs de ImgBB para los sellos en lote. | ✅ |
+
 
 
 ---

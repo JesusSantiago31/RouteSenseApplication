@@ -55,3 +55,27 @@ class ReglaPuntos(Base):
     fecha_actualizacion = Column("updated_at", TIMESTAMP, server_default=func.now(), onupdate=func.now())
 
 
+class ConfigSellos(Base):
+    __tablename__ = "stamp_config"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    max_stamps = Column(Integer, nullable=False, default=10)
+    reward_points_bonus = Column(Integer, nullable=False, default=50)
+    reward_description = Column(String(255), default="Recompensa por tarjeta de sellos completada")
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(TIMESTAMP, server_default=func.now())
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+
+
+class ImagenSello(Base):
+    __tablename__ = "stamp_images"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    stamp_count = Column(Integer, unique=True, nullable=False)
+    image_url = Column(String(500), nullable=False)
+    wallet_hero_url = Column(String(500), nullable=True)
+    nombre_sello = Column(String(100), default="Tarjeta de Lealtad")
+    created_at = Column(TIMESTAMP, server_default=func.now())
+
+
+

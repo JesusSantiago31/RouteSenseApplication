@@ -71,3 +71,37 @@ class ReglaPuntosResponse(BaseModel):
     class Config:
         from_attributes = True
 
+# Schemas para Sistema de Sellos y Google Wallet Pass
+class ImagenSelloCreate(BaseModel):
+    stamp_count: int
+    image_url: str
+    wallet_hero_url: str | None = None
+    nombre_sello: str | None = "Tarjeta de Lealtad"
+
+class ImagenSelloResponse(BaseModel):
+    id: UUID
+    stamp_count: int
+    image_url: str
+    wallet_hero_url: str | None = None
+    nombre_sello: str | None
+
+    class Config:
+        from_attributes = True
+
+class ConfigSellosCreate(BaseModel):
+    max_stamps: int = 10
+    reward_points_bonus: int = 50
+    reward_description: str | None = "Recompensa por tarjeta de sellos completada"
+    is_active: bool = True
+
+class ConfigSellosResponse(BaseModel):
+    id: UUID
+    max_stamps: int
+    reward_points_bonus: int
+    reward_description: str | None
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+
