@@ -1,0 +1,133 @@
+version: '3.8'
+
+services:
+  # 1. Microservicio de Administración
+  administrador-service:
+    build:
+      context: ./Backend/Administrador
+      dockerfile: Dockerfile
+    container_name: routesense_admin
+    ports:
+      - "8001:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@db:5432/routesense}
+      - SECRET_KEY=${SECRET_KEY:-supersecretkey123}
+    networks:
+      - routesense_net
+
+  # 2. Microservicio de Autobuses
+  autobus-service:
+    build:
+      context: ./Backend/Autobus
+      dockerfile: Dockerfile
+    container_name: routesense_autobus
+    ports:
+      - "8002:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@db:5432/routesense}
+      - SECRET_KEY=${SECRET_KEY:-supersecretkey123}
+    networks:
+      - routesense_net
+
+  # 3. Microservicio de Conductores
+  conductores-service:
+    build:
+      context: ./Backend/Conductores
+      dockerfile: Dockerfile
+    container_name: routesense_conductores
+    ports:
+      - "8003:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@db:5432/routesense}
+      - SECRET_KEY=${SECRET_KEY:-supersecretkey123}
+    networks:
+      - routesense_net
+
+  # 4. Microservicio de Empresas
+  empresas-service:
+    build:
+      context: ./Backend/Empresas
+      dockerfile: Dockerfile
+    container_name: routesense_empresas
+    ports:
+      - "8004:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@db:5432/routesense}
+      - SECRET_KEY=${SECRET_KEY:-supersecretkey123}
+    networks:
+      - routesense_net
+
+  # 5. Microservicio de Paradas
+  paradas-service:
+    build:
+      context: ./Backend/Paradas
+      dockerfile: Dockerfile
+    container_name: routesense_paradas
+    ports:
+      - "8005:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@db:5432/routesense}
+      - SECRET_KEY=${SECRET_KEY:-supersecretkey123}
+    networks:
+      - routesense_net
+
+  # 6. Microservicio de Rutas
+  rutas-service:
+    build:
+      context: ./Backend/Rutas
+      dockerfile: Dockerfile
+    container_name: routesense_rutas
+    ports:
+      - "8006:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@db:5432/routesense}
+      - SECRET_KEY=${SECRET_KEY:-supersecretkey123}
+    networks:
+      - routesense_net
+
+  # 7. Microservicio de Clientes
+  clientes-service:
+    build:
+      context: ./Backend/Clientes
+      dockerfile: Dockerfile
+    container_name: routesense_clientes
+    ports:
+      - "8007:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@db:5432/routesense}
+      - SECRET_KEY=${SECRET_KEY:-supersecretkey123}
+    networks:
+      - routesense_net
+
+  # 8. Microservicio de Monitoreo en Tiempo Real
+  monitoreo-service:
+    build:
+      context: ./Backend/Monitoreo
+      dockerfile: Dockerfile
+    container_name: routesense_monitoreo
+    ports:
+      - "8008:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@db:5432/routesense}
+      - SECRET_KEY=${SECRET_KEY:-supersecretkey123}
+    networks:
+      - routesense_net
+
+  # Frontend Application (React + Vite)
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: routesense_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - autobus-service
+      - rutas-service
+      - monitoreo-service
+    networks:
+      - routesense_net
+
+networks:
+  routesense_net:
+    driver: bridge

@@ -53,3 +53,21 @@ class BusResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+# Reglas de Puntos por Dinero Gastado
+class ReglaPuntosCreate(BaseModel):
+    monto_dinero: int
+    puntos_otorgados: int
+    descripcion: str | None = None
+    activa: bool = True
+
+class ReglaPuntosResponse(BaseModel):
+    rule_id: UUID
+    monto_dinero: int
+    puntos_otorgados: int
+    descripcion: str | None = None
+    activa: bool
+
+    class Config:
+        from_attributes = True
+

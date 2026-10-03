@@ -42,3 +42,16 @@ class Autobus(Base):
     capacidad = Column(Integer, nullable=False)
     empresa = Column(String(100), nullable=False)
     estado = Column(Boolean, nullable=False, default=True)
+
+
+class ReglaPuntos(Base):
+    __tablename__ = "points_rules"
+
+    rule_id = Column("id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    monto_dinero = Column(Integer, nullable=False, default=10) # Cantidad de dinero gastado (ej. $10 MXN)
+    puntos_otorgados = Column(Integer, nullable=False, default=1) # Puntos bonificados por esa cantidad
+    descripcion = Column(String(255), nullable=True)
+    activa = Column("is_active", Boolean, nullable=False, default=True)
+    fecha_actualizacion = Column("updated_at", TIMESTAMP, server_default=func.now(), onupdate=func.now())
+
+

@@ -2,9 +2,15 @@ import React, { useState } from 'react';
 import { 
   Activity, Eye, EyeOff, Plus, Trash2, Edit2, Search,
   Map as MapIcon, Truck, Building2, User, UserCheck, Users,
-  ChevronRight, MapPinned, ChevronDown
+  ChevronRight, MapPinned, ChevronDown, Award
 } from 'lucide-react';
 import logo from '../../../assets/logo.png';
+import StopForm from './StopForm';
+import RouteForm from './RouteForm';
+import CompanyForm from './CompanyForm';
+import BusForm from './BusForm';
+import DriverForm from './DriverForm';
+import PointsForm from './PointsForm';
 
 const MultiSelect = ({ options, selected, onChange, placeholder, renderOption }) => {
   const [open, setOpen] = useState(false);
@@ -54,11 +60,6 @@ const MultiSelect = ({ options, selected, onChange, placeholder, renderOption })
     </div>
   );
 };
-import StopForm from './StopForm';
-import RouteForm from './RouteForm';
-import CompanyForm from './CompanyForm';
-import BusForm from './BusForm';
-import DriverForm from './DriverForm';
 
 export default function Sidebar({ 
   rutas, paradas, visibleRoutes, visibleStops, toggleRouteVisibility, toggleStopVisibility, toggleAllStops, onNewRoute, onNewStop, onDeleteStop,
@@ -107,23 +108,30 @@ export default function Sidebar({
         </div>
 
         {/* TABS NAVEGACIÓN */}
-        <div className="flex p-4 gap-2 bg-slate-50/50 border-b border-slate-100">
+        <div className="flex p-3 gap-1.5 bg-slate-50/50 border-b border-slate-100 overflow-x-auto">
            {[
              { id: 'operativo', icon: MapIcon, label: 'Operativo' },
              { id: 'flota', icon: Truck, label: 'Flota' },
-             { id: 'empresas', icon: Building2, label: 'Empresas' }
+             { id: 'empresas', icon: Building2, label: 'Empresas' },
+             { id: 'puntos', icon: Award, label: 'Puntos' }
            ].map(tab => (
-             <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${activeTab === tab.id ? 'bg-white text-primary shadow-sm border border-slate-100' : 'text-slate-400 hover:text-slate-600'}`}>
-                <tab.icon size={16} /> {tab.label}
+             <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-2xl font-black text-[9px] uppercase tracking-wider transition-all ${activeTab === tab.id ? 'bg-white text-primary shadow-sm border border-slate-100' : 'text-slate-400 hover:text-slate-600'}`}>
+                <tab.icon size={15} /> {tab.label}
              </button>
            ))}
         </div>
 
         <div className="flex-1 overflow-y-auto scrollbar-hide flex flex-col">
             
+            {/* CONTENIDO PESTAÑA: PUNTOS */}
+            {activeTab === 'puntos' && (
+              <PointsForm />
+            )}
+
             {/* CONTENIDO PESTAÑA: OPERATIVO */}
             {activeTab === 'operativo' && (
               <div className="animate-in fade-in slide-in-from-left-4 duration-500 flex flex-col h-full">
+
                 <header className="px-9 pt-8 pb-4">
                     <p className="text-primary font-black text-[11px] tracking-widest uppercase opacity-60">Administración</p>
                     <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight">Control de Tránsito</h2>

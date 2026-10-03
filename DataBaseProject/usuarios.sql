@@ -37,3 +37,13 @@ CREATE TABLE reportes (
     total_viajes INT DEFAULT 0,
     promedio_eta NUMERIC(6,2)
 );
+
+CREATE TABLE reglas_puntos (
+    rule_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    monto_dinero INT NOT NULL CHECK (monto_dinero > 0),
+    puntos_otorgados INT NOT NULL CHECK (puntos_otorgados >= 0),
+    descripcion VARCHAR(255),
+    activa BOOLEAN DEFAULT TRUE,
+    fecha_actualizacion TIMESTAMP DEFAULT NOW()
+);
+

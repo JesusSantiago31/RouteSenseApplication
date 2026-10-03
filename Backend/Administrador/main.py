@@ -4,7 +4,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from utils.limiter import limiter
-from routers import create_admin, list_admins, get_admin, update_role, delete_admin, login
+from routers import create_admin, list_admins, get_admin, update_role, delete_admin, login, puntos_config
 from database import Base, engine
 import models
 
@@ -38,3 +38,5 @@ app.include_router(list_admins.router)
 app.include_router(get_admin.router)
 app.include_router(update_role.router)
 app.include_router(delete_admin.router)
+app.include_router(puntos_config.router)
+
